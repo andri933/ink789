@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Akhir - Jaringan Komputer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Radio Button Styling Custom */
+        .option-radio:checked + div {
+            background-color: #eff6ff; /* blue-50 */
+            border-color: #2563eb; /* blue-600 */
+            color: #1e40af; /* blue-800 */
+        }
+        .option-radio:checked + div .circle-indicator {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-600 to-slate-800 min-h-screen flex items-center justify-center p-4 relative">
+
+    <!-- Tombol Fullscreen -->
+    <button onclick="toggleFullScreen()" class="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full backdrop-blur-md transition shadow-lg flex items-center justify-center border border-white/20" title="Layar Penuh">
+        <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
+    </button>
+
+    <!-- Container Utama -->
+    <div class="max-w-4xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
+        
+        <!-- Header Ujian -->
+        <div class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-slate-500 hover:text-slate-800 transition">
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800">Ujian Jaringan Komputer</h1>
+                    <p class="text-xs text-slate-500">Kelas 7 - Semester 1</p>
+                </div>
+            </div>
+            <!-- Timer (Opsional, visual saja) -->
+            <div class="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-lg text-slate-600 font-mono text-sm">
+                <i class="fa-regular fa-clock"></i> <span>Ujian Sedang Berlangsung</span>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white transition-opacity duration-500">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p class="text-slate-500 font-medium">Menyiapkan Lembar Ujian...</p>
+        </div>
+
+        <!-- Result Screen (Hidden initially) -->
+        <div id="result-screen" class="hidden absolute inset-0 z-30 bg-white flex-col items-center justify-center text-center p-8">
+            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                <i class="fa-solid fa-clipboard-check text-5xl text-blue-600"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Ujian Selesai</h2>
+            <p class="text-slate-500 mb-8">Berikut adalah hasil pencapaian Anda.</p>
+            
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="text-sm text-slate-500 mb-1">Jawaban Benar</div>
+                    <div class="text-2xl font-bold text-green-600" id="result-correct">0/0</div>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="text-sm text-slate-500 mb-1">Nilai Akhir</div>
+                    <div class="text-3xl font-bold text-blue-600" id="result-score">0%</div>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-lg w-full max-w-xs">
+                Kembali ke Awal
+            </button>
+        </div>
+
+        <!-- Exam Area -->
+        <div id="exam-area" class="flex-grow flex flex-col hidden bg-slate-50">
+            
+            <!-- Question Navigator (Scrollable horizontal) -->
+            <div class="bg-white border-b border-slate-200 px-4 py-3 overflow-x-auto whitespace-nowrap scrollbar-hide" id="question-nav">
+                <!-- Javascript will populate bubbles here -->
+            </div>
+
+            <div class="flex-grow flex flex-col md:flex-row h-full overflow-hidden">
+                <!-- Question & Options Panel -->
+                <div class="flex-grow p-6 md:p-10 overflow-y-auto">
+                    
+                    <div class="max-w-3xl mx-auto">
+                        <div class="mb-6">
+                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-bold mb-3">
+                                Soal No. <span id="q-number">1</span>
+                            </span>
+                            <h2 id="q-text" class="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed">
+                                <!-- Soal Text -->
+                            </h2>
+                        </div>
+
+                        <!-- Options Container -->
+                        <div class="space-y-3" id="options-container">
+                            <!-- Options rendered by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="bg-white border-t border-slate-200 p-4 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                <button onclick="prevQuestion()" id="btn-prev" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> Sebelumnya
+                </button>
+                
+                <button onclick="nextQuestion()" id="btn-next" class="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    Selanjutnya <i class="fa-solid fa-chevron-right ml-2"></i>
+                </button>
+
+                <button onclick="finishExam()" id="btn-finish" class="hidden px-6 py-2.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition shadow-lg shadow-green-200">
+                    Selesai Ujian <i class="fa-solid fa-check ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // KONFIGURASI DATABASE
+        // ==========================================
+        
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSRTESr5U38MR01quLz0VXcrwVcanIJUvMPjPX5lNOY40lP5p4czGenzphqymxPlSPmAnJVVYeL70M1/pub?gid=259781060&single=true&output=csv';
+
+        // ==========================================
+        // LOGIKA UJIAN
+        // ==========================================
+
+        let questions = [];
+        let userAnswers = {}; // Menyimpan jawaban user { indexSoal: "A/B/C/D" }
+        let currentIdx = 0;
+
+        const ui = {
+            loading: document.getElementById('loading-screen'),
+            resultScreen: document.getElementById('result-screen'),
+            examArea: document.getElementById('exam-area'),
+            qText: document.getElementById('q-text'),
+            qNum: document.getElementById('q-number'),
+            optionsContainer: document.getElementById('options-container'),
+            navContainer: document.getElementById('question-nav'),
+            btnPrev: document.getElementById('btn-prev'),
+            btnNext: document.getElementById('btn-next'),
+            btnFinish: document.getElementById('btn-finish'),
+            resCorrect: document.getElementById('result-correct'),
+            resScore: document.getElementById('result-score')
+        };
+
+        function initExam() {
+            Papa.parse(GOOGLE_SHEET_CSV_URL, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    processData(results.data);
+                },
+                error: function(err) {
+                    alert("Gagal memuat soal ujian. Periksa koneksi internet.");
+                }
+            });
+        }
+
+        function processData(rawData) {
+            // Struktur Data dari User:
+            // Col A (0) = Opsi A
+            // Col B (1) = Opsi B
+            // Col C (2) = Opsi C
+            // Col D (3) = Opsi D
+            // Col E (4) = SOAL
+            // Col F (5) = KUNCI JAWABAN (Asumsi, karena diperlukan untuk penilaian)
+
+            questions = rawData
+                .filter(row => row && row[4]) // Pastikan ada soal di kolom E
+                .map((row, index) => ({
+                    id: index,
+                    question: row[4],
+                    options: {
+                        A: row[0],
+                        B: row[1],
+                        C: row[2],
+                        D: row[3]
+                    },
+                    // Mengambil kunci jawaban dari Kolom F (Index 5). Jika kosong, default 'A'.
+                    correctKey: row[5] ? row[5].trim().toUpperCase().replace(/[^A-D]/g, '') : 'A' 
+                }));
+
+            if (questions.length > 0) {
+                ui.loading.classList.add('hidden');
+                ui.examArea.classList.remove('hidden');
+                renderNavBubbles();
+                loadQuestion(0);
+            }
+        }
+
+        function renderNavBubbles() {
+            ui.navContainer.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const bubble = document.createElement('button');
+                bubble.className = `w-8 h-8 rounded-full text-xs font-semibold mr-2 border border-slate-300 transition-colors ${idx === currentIdx ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 hover:bg-slate-100'}`;
+                bubble.innerText = idx + 1;
+                bubble.id = `nav-bubble-${idx}`;
+                bubble.onclick = () => loadQuestion(idx);
+                ui.navContainer.appendChild(bubble);
+            });
+        }
+
+        function updateNavBubbles() {
+            questions.forEach((q, idx) => {
+                const bubble = document.getElementById(`nav-bubble-${idx}`);
+                
+                // Base style
+                let classes = "w-8 h-8 rounded-full text-xs font-semibold mr-2 border transition-colors ";
+                
+                // Active State (Soal yang sedang dibuka)
+                if (idx === currentIdx) {
+                    classes += "ring-2 ring-blue-300 ring-offset-1 ";
+                }
+
+                // Answered State (Sudah dijawab) vs Belum
+                if (userAnswers[idx]) {
+                    if (idx === currentIdx) {
+                        classes += "bg-blue-600 text-white border-blue-600";
+                    } else {
+                        classes += "bg-blue-100 text-blue-700 border-blue-200"; // Sudah dijawab tapi tidak aktif
+                    }
+                } else {
+                     if (idx === currentIdx) {
+                        classes += "bg-slate-800 text-white border-slate-800";
+                    } else {
+                        classes += "bg-white text-slate-500 border-slate-300 hover:bg-slate-50";
+                    }
+                }
+
+                bubble.className = classes;
+            });
+        }
+
+        function loadQuestion(index) {
+            currentIdx = index;
+            const q = questions[index];
+            
+            ui.qNum.innerText = index + 1;
+            ui.qText.innerText = q.question;
+            
+            // Render Options
+            ui.optionsContainer.innerHTML = '';
+            ['A', 'B', 'C', 'D'].forEach(key => {
+                const label = document.createElement('label');
+                label.className = "block cursor-pointer group";
+                
+                const isChecked = userAnswers[index] === key ? 'checked' : '';
+
+                label.innerHTML = `
+                    <input type="radio" name="option" class="option-radio hidden" value="${key}" onclick="saveAnswer('${key}')" ${isChecked}>
+                    <div class="flex items-center p-4 rounded-xl border-2 border-slate-200 bg-white group-hover:border-blue-300 transition-all duration-200">
+                        <div class="circle-indicator w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center mr-4 text-sm font-bold text-slate-400 group-hover:border-blue-400 transition-colors bg-slate-50">
+                            ${key}
+                        </div>
+                        <span class="text-slate-700 text-base md:text-lg font-medium">${q.options[key]}</span>
+                    </div>
+                `;
+                ui.optionsContainer.appendChild(label);
+            });
+
+            // Update Navigation Buttons
+            ui.btnPrev.disabled = index === 0;
+            
+            if (index === questions.length - 1) {
+                ui.btnNext.classList.add('hidden');
+                ui.btnFinish.classList.remove('hidden');
+            } else {
+                ui.btnNext.classList.remove('hidden');
+                ui.btnFinish.classList.add('hidden');
+            }
+
+            // Scroll nav bubble into view
+            const bubble = document.getElementById(`nav-bubble-${index}`);
+            if(bubble) bubble.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'center'});
+
+            updateNavBubbles();
+        }
+
+        function saveAnswer(key) {
+            userAnswers[currentIdx] = key;
+            updateNavBubbles();
+        }
+
+        function nextQuestion() {
+            if (currentIdx < questions.length - 1) {
+                loadQuestion(currentIdx + 1);
+            }
+        }
+
+        function prevQuestion() {
+            if (currentIdx > 0) {
+                loadQuestion(currentIdx - 1);
+            }
+        }
+
+        function finishExam() {
+            // Konfirmasi sebelum selesai
+            const totalAnswered = Object.keys(userAnswers).length;
+            const totalQuestions = questions.length;
+            
+            if (totalAnswered < totalQuestions) {
+                const confirmMsg = `Kamu baru menjawab ${totalAnswered} dari ${totalQuestions} soal. Yakin ingin menyelesaikan ujian?`;
+                if (!confirm(confirmMsg)) return;
+            }
+
+            calculateResult();
+        }
+
+        function calculateResult() {
+            let correctCount = 0;
+            
+            questions.forEach((q, idx) => {
+                if (userAnswers[idx] && userAnswers[idx] === q.correctKey) {
+                    correctCount++;
+                }
+            });
+
+            const score = Math.round((correctCount / questions.length) * 100);
+
+            ui.examArea.classList.add('hidden');
+            ui.resultScreen.classList.remove('hidden');
+            ui.resultScreen.classList.add('flex');
+
+            ui.resCorrect.innerText = `${correctCount} / ${questions.length}`;
+            ui.resScore.innerText = `${score}%`;
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById('fullscreen-icon').classList.replace('fa-expand', 'fa-compress');
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                document.getElementById('fullscreen-icon').classList.replace('fa-compress', 'fa-expand');
+            }
+        }
+
+        // Start
+        initExam();
+    </script>
+</body>
+</html>
