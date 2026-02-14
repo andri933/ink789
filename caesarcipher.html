@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laboratorium Kriptografi - Caesar Cipher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Scrollbar custom untuk visualizer alfabet */
+        .alphabet-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+        .alphabet-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .alphabet-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .alphabet-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #94a3b8;
+        }
+
+        .letter-box {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .letter-box.active {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
+            transform: scale(1.1);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-700 to-slate-900 min-h-screen p-4 md:p-8">
+
+    <!-- Container Utama -->
+    <div class="max-w-5xl mx-auto glass-panel rounded-3xl shadow-2xl overflow-hidden min-h-[80vh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="text-slate-500 hover:text-slate-800 transition flex items-center gap-2 font-medium">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali
+                </a>
+                <div class="h-6 w-px bg-slate-300"></div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-user-secret text-blue-600"></i> Caesar Cipher
+                    </h1>
+                </div>
+            </div>
+            <div class="hidden md:block text-sm text-slate-500">
+                Algoritma Kriptografi Klasik
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-grow flex flex-col lg:flex-row bg-slate-50 overflow-hidden">
+            
+            <!-- LEFT PANEL: Simulator -->
+            <div class="flex-grow p-6 md:p-8 overflow-y-auto">
+                
+                <!-- 1. Visualizer Section -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-700">Visualisasi Geseran Alfabet</h3>
+                        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded">Geser: <span id="shift-display-val" class="font-bold text-blue-600">0</span></span>
+                    </div>
+
+                    <!-- Scrollable Alphabet Strip -->
+                    <div class="alphabet-scroll overflow-x-auto pb-4">
+                        <div class="inline-flex flex-col gap-2 min-w-max px-2">
+                            <!-- Plaintext Row -->
+                            <div class="flex gap-1" id="plain-row">
+                                <!-- JS will populate A-Z -->
+                            </div>
+                            
+                            <!-- Arrow Separator -->
+                            <div class="flex gap-1 text-slate-300 justify-center my-1">
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </div>
+
+                            <!-- Ciphertext Row -->
+                            <div class="flex gap-1" id="cipher-row">
+                                <!-- JS will populate shifted A-Z -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Controls & Input -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    
+                    <!-- Controls (Kunci) -->
+                    <div class="md:col-span-4 bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-col justify-center">
+                        <label class="block text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4 text-center">Atur Kunci (Key)</label>
+                        
+                        <div class="flex items-center justify-center gap-4 mb-6">
+                            <button onclick="updateShift(-1)" class="w-12 h-12 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center text-xl shadow-sm active:scale-95">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+                            
+                            <div class="w-20 h-20 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-4xl font-bold shadow-lg shadow-blue-200" id="key-display">
+                                0
+                            </div>
+
+                            <button onclick="updateShift(1)" class="w-12 h-12 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center justify-center text-xl shadow-sm active:scale-95">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <input type="range" id="shift-slider" min="0" max="25" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                        <div class="text-center mt-2 text-xs text-slate-400">Geser slider untuk mengubah cepat</div>
+                    </div>
+
+                    <!-- Input / Output -->
+                    <div class="md:col-span-8 space-y-4">
+                        <!-- Plaintext Input -->
+                        <div class="bg-white rounded-2xl p-1 shadow-sm border border-slate-200 focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-50 transition-all">
+                            <div class="px-4 py-2 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                                <span class="text-xs font-bold text-slate-500 uppercase">Pesan Asli (Plaintext)</span>
+                                <button onclick="clearText()" class="text-xs text-red-500 hover:text-red-700">Hapus</button>
+                            </div>
+                            <textarea id="input-text" rows="3" class="w-full p-4 bg-transparent border-none focus:ring-0 text-slate-700 font-mono text-lg resize-none" placeholder="Ketik pesan rahasia di sini..."></textarea>
+                        </div>
+
+                        <!-- Arrow Icon -->
+                        <div class="flex justify-center -my-2 relative z-10">
+                            <div class="bg-slate-800 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-4 border-slate-50">
+                                <i class="fa-solid fa-arrow-down"></i>
+                            </div>
+                        </div>
+
+                        <!-- Ciphertext Output -->
+                        <div class="bg-slate-800 rounded-2xl p-1 shadow-lg border border-slate-700">
+                            <div class="px-4 py-2 border-b border-slate-700 flex justify-between items-center bg-slate-900/50 rounded-t-xl">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Pesan Terenkripsi (Ciphertext)</span>
+                                <button onclick="copyResult()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                                    <i class="fa-regular fa-copy"></i> Salin
+                                </button>
+                            </div>
+                            <div id="output-text" class="w-full p-4 min-h-[100px] text-green-400 font-mono text-lg break-words">
+                                <!-- Hasil muncul di sini -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Info & Mini Game -->
+            <div class="w-full lg:w-80 bg-white border-l border-slate-200 p-6 overflow-y-auto">
+                
+                <!-- Info Card -->
+                <div class="mb-8">
+                    <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-blue-600"></i> Apa itu Caesar Cipher?
+                    </h4>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-4 text-justify">
+                        Teknik enkripsi sederhana di mana setiap huruf digeser sejumlah posisi tertentu dalam alfabet. 
+                        Dinamakan sesuai Julius Caesar yang menggunakannya untuk komunikasi militer.
+                    </p>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                        <p class="text-xs text-blue-800 font-mono">
+                            Rumus:<br>
+                            C = (P + Key) % 26
+                        </p>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 my-6">
+
+                <!-- Mini Challenge -->
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-puzzle-piece text-orange-500"></i> Tantangan Agen
+                    </h4>
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <p class="text-xs text-slate-500 mb-2">Pecahkan kode ini:</p>
+                        <div class="bg-slate-800 text-green-400 font-mono p-2 rounded mb-3 text-center tracking-widest font-bold text-lg">
+                            IFMMP
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">Clue: Geser kunci ke angka <strong>1</strong>.</p>
+                        
+                        <input type="text" id="challenge-input" placeholder="Jawaban..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg mb-2 focus:border-blue-500 focus:outline-none uppercase">
+                        <button onclick="checkChallenge()" class="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2 rounded-lg transition">
+                            Cek Jawaban
+                        </button>
+                        <p id="challenge-feedback" class="text-center text-xs mt-2 font-bold min-h-[1rem]"></p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // STATE & VARIABLES
+        // ==========================================
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let currentShift = 0;
+
+        // Elements
+        const plainRowEl = document.getElementById('plain-row');
+        const cipherRowEl = document.getElementById('cipher-row');
+        const keyDisplayEl = document.getElementById('key-display');
+        const shiftDisplayVal = document.getElementById('shift-display-val');
+        const sliderEl = document.getElementById('shift-slider');
+        const inputTextEl = document.getElementById('input-text');
+        const outputTextEl = document.getElementById('output-text');
+
+        // ==========================================
+        // INITIALIZATION
+        // ==========================================
+        function init() {
+            renderAlphabetStrips();
+            updateVisuals();
+            
+            // Event Listeners
+            inputTextEl.addEventListener('input', encryptText);
+            sliderEl.addEventListener('input', (e) => {
+                currentShift = parseInt(e.target.value);
+                updateVisuals();
+                encryptText();
+            });
+        }
+
+        // ==========================================
+        // LOGIC FUNCTIONS
+        // ==========================================
+
+        // 1. Render Alphabet Strips (Static Structure)
+        function renderAlphabetStrips() {
+            plainRowEl.innerHTML = '';
+            cipherRowEl.innerHTML = '';
+
+            for (let i = 0; i < 26; i++) {
+                const letter = alphabet[i];
+                
+                // Plain Box
+                const pBox = document.createElement('div');
+                pBox.className = "w-8 h-8 md:w-10 md:h-10 border border-slate-200 rounded flex items-center justify-center font-mono font-bold text-slate-500 text-sm md:text-base bg-white flex-shrink-0";
+                pBox.innerText = letter;
+                plainRowEl.appendChild(pBox);
+
+                // Cipher Box (ID needed for updates)
+                const cBox = document.createElement('div');
+                cBox.className = "letter-box w-8 h-8 md:w-10 md:h-10 border border-slate-300 rounded flex items-center justify-center font-mono font-bold text-white bg-slate-700 text-sm md:text-base flex-shrink-0 shadow-sm";
+                cBox.id = `c-box-${i}`;
+                cBox.innerText = letter;
+                cipherRowEl.appendChild(cBox);
+            }
+        }
+
+        // 2. Update Visuals (Shift logic)
+        function updateVisuals() {
+            // Normalize shift (handle negative numbers logic properly)
+            // But for this UI, we keep range 0-25 for simplicity or allow wrap
+            // Let's force range 0-25 for the key display
+            let displayKey = ((currentShift % 26) + 26) % 26;
+
+            // Update UI Counters
+            keyDisplayEl.innerText = displayKey;
+            shiftDisplayVal.innerText = displayKey;
+            sliderEl.value = displayKey;
+
+            // Update Cipher Row Letters
+            for (let i = 0; i < 26; i++) {
+                const shiftedIndex = (i + displayKey) % 26;
+                const newLetter = alphabet[shiftedIndex];
+                const box = document.getElementById(`c-box-${i}`);
+                
+                // Add animation effect
+                box.style.transform = "scale(0.8)";
+                box.style.opacity = "0.5";
+                
+                setTimeout(() => {
+                    box.innerText = newLetter;
+                    box.style.transform = "scale(1)";
+                    box.style.opacity = "1";
+                    
+                    // Highlight logic: if key > 0, highlight shifted boxes
+                    if(displayKey > 0) {
+                        box.classList.add('bg-blue-600', 'border-blue-400');
+                        box.classList.remove('bg-slate-700', 'border-slate-300');
+                    } else {
+                        box.classList.add('bg-slate-700', 'border-slate-300');
+                        box.classList.remove('bg-blue-600', 'border-blue-400');
+                    }
+                }, 100);
+            }
+        }
+
+        // 3. Update Shift from Buttons
+        function updateShift(amount) {
+            currentShift += amount;
+            // Wrap around logic for slider sync
+            if (currentShift < 0) currentShift = 25;
+            if (currentShift > 25) currentShift = 0;
+            
+            updateVisuals();
+            encryptText();
+        }
+
+        // 4. Encrypt Logic
+        function encryptText() {
+            const input = inputTextEl.value.toUpperCase();
+            let output = "";
+            let shift = ((currentShift % 26) + 26) % 26; // Ensure positive
+
+            for (let i = 0; i < input.length; i++) {
+                const char = input[i];
+                if (alphabet.includes(char)) {
+                    const oldIdx = alphabet.indexOf(char);
+                    const newIdx = (oldIdx + shift) % 26;
+                    output += alphabet[newIdx];
+                    
+                    // Highlight the letter in visualizer briefly
+                    highlightVisual(oldIdx);
+                } else {
+                    output += char; // Keep symbols/spaces
+                }
+            }
+            
+            outputTextEl.innerText = output;
+            if(output === "") outputTextEl.innerText = "// Hasil enkripsi muncul di sini...";
+        }
+
+        function highlightVisual(index) {
+            // Optional: Highlight letter being typed (Simple implementation)
+            const pBox = plainRowEl.children[index];
+            const cBox = cipherRowEl.children[index];
+            
+            pBox.classList.add('active');
+            cBox.classList.add('active');
+            
+            setTimeout(() => {
+                pBox.classList.remove('active');
+                cBox.classList.remove('active');
+            }, 300);
+        }
+
+        // 5. Utilities
+        function clearText() {
+            inputTextEl.value = '';
+            encryptText();
+            inputTextEl.focus();
+        }
+
+        function copyResult() {
+            const text = outputTextEl.innerText;
+            if (text && !text.startsWith("//")) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("Teks berhasil disalin!");
+                });
+            }
+        }
+
+        // 6. Mini Challenge Logic
+        function checkChallenge() {
+            const ans = document.getElementById('challenge-input').value.toUpperCase().trim();
+            const feedback = document.getElementById('challenge-feedback');
+            
+            if (ans === "HELLO") {
+                feedback.innerText = "BENAR! Agen hebat! 🎉";
+                feedback.className = "text-center text-xs mt-2 font-bold text-green-600";
+            } else {
+                feedback.innerText = "Salah. Coba geser kunci ke 1 lalu lihat huruf I menjadi apa.";
+                feedback.className = "text-center text-xs mt-2 font-bold text-red-500";
+            }
+        }
+
+        // Run Init
+        init();
+
+    </script>
+</body>
+</html>
