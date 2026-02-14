@@ -36,13 +36,30 @@
     <!-- Container Utama -->
     <div class="max-w-2xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative min-h-[500px] flex flex-col">
         
-        <!-- Header -->
-        <div class="bg-white/50 p-4 border-b border-slate-200 flex justify-between items-center">
-            <a href="index.html" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2">
-                <i class="fa-solid fa-arrow-left"></i> Kembali
-            </a>
-            <div class="font-bold text-slate-700">
-                Skor: <span id="score" class="text-blue-600 text-xl">0</span>
+        <!-- Header (Updated Layout) -->
+        <div class="bg-white/50 p-4 border-b border-slate-200 grid grid-cols-3 items-center">
+            <!-- Kiri: Tombol Kembali -->
+            <div class="justify-self-start">
+                <a href="index.html" class="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-2 text-sm md:text-base">
+                    <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Kembali</span>
+                </a>
+            </div>
+
+            <!-- Tengah: Skor -->
+            <div class="justify-self-center">
+                <div class="font-bold text-slate-700 text-lg md:text-xl border px-4 py-1 rounded-full bg-white shadow-sm">
+                    Skor: <span id="score" class="text-blue-600">0</span>
+                </div>
+            </div>
+
+            <!-- Kanan: Skip & Fullscreen -->
+            <div class="justify-self-end flex gap-2">
+                <button onclick="skipQuestion()" class="bg-orange-100 text-orange-600 hover:bg-orange-200 px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-1" title="Lewati Soal">
+                    Skip <i class="fa-solid fa-forward"></i>
+                </button>
+                <button onclick="toggleFullScreen()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm transition" title="Layar Penuh">
+                    <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
+                </button>
             </div>
         </div>
 
@@ -139,12 +156,12 @@
             finalScore: document.getElementById('final-score'),
             input: document.getElementById('answer-input'),
             feedback: document.getElementById('feedback'),
-            card: document.querySelector('.glass-panel')
+            card: document.querySelector('.glass-panel'),
+            fsIcon: document.getElementById('fullscreen-icon')
         };
 
         // Fungsi Memulai Game
         function initGame() {
-            // Validasi awal URL
             if (!GOOGLE_SHEET_CSV_URL) {
                 showError("URL Database Kosong", "Silakan atur variabel GOOGLE_SHEET_CSV_URL di dalam kode.");
                 return;
@@ -156,7 +173,6 @@
                 download: true,
                 header: false,
                 complete: function(results) {
-                    // Cek apakah parse berhasil menghasilkan data valid
                     const success = processData(results.data);
                     if (!success) {
                         showError("Data Kosong", "Tidak ada soal ditemukan di sheet 'soal1'. Pastikan Sheet dipublish sebagai CSV.");
@@ -171,18 +187,17 @@
 
         // Tampilkan Pesan Error
         function showError(title, message) {
-            ui.loaderIcon.className = "fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4"; // Ganti spinner jadi icon error
+            ui.loaderIcon.className = "fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4";
             ui.loadingTitle.innerText = title;
             ui.loadingTitle.classList.add("text-red-600");
             ui.loadingMessage.innerText = message;
-            ui.errorActions.classList.remove("hidden"); // Munculkan tombol coba lagi
+            ui.errorActions.classList.remove("hidden");
         }
 
         // Proses Data menjadi Format Soal
         function processData(rawData) {
             if (!rawData || rawData.length === 0) return false;
 
-            // Filter baris yang valid (punya kolom A dan B)
             const processedQuestions = rawData
                 .filter(row => row && row[0] && row[1]) 
                 .map(row => ({
@@ -192,18 +207,16 @@
 
             if (processedQuestions.length > 0) {
                 questions = processedQuestions;
-                // Acak soal
                 questions.sort(() => Math.random() - 0.5);
 
-                // Update UI: Sembunyikan loading, Tampilkan Kuis
                 ui.loading.classList.add('hidden');
                 ui.quizArea.classList.remove('hidden');
                 ui.totalNum.innerText = questions.length;
                 
                 loadQuestion();
-                return true; // Berhasil
+                return true; 
             }
-            return false; // Gagal (Data kosong setelah filter)
+            return false; 
         }
 
         function loadQuestion() {
@@ -224,7 +237,6 @@
             if (!isAnswering) return;
 
             const userAnswer = ui.input.value.trim().toUpperCase();
-            // Jika kosong jangan diproses
             if(userAnswer === "") {
                 ui.input.focus();
                 return; 
@@ -233,39 +245,63 @@
             const correctAnswer = questions[currentQuestionIndex].answer;
             let isCorrect = false;
             
-            // Normalisasi jawaban (hapus spasi berlebih dan simbol aneh)
             const cleanUser = userAnswer.replace(/[^A-Z0-9]/g, '');
             const cleanKey = correctAnswer.replace(/[^A-Z0-9]/g, '');
 
-            // Logika Cek
             if (cleanUser === cleanKey) {
                 isCorrect = true;
             }
 
-            isAnswering = false;
-
             if (isCorrect) {
+                isAnswering = false; // Kunci jawaban agar tidak double submit
                 score += 10;
                 ui.scoreDisplay.innerText = score;
                 showFeedback(true, "Benar! 🎉");
+                
+                // Lanjut otomatis kalau benar
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+
             } else {
-                showFeedback(false, `Salah! Jawabannya: ${correctAnswer}`);
+                // Jika salah: Jangan tampilkan jawaban, Jangan lanjut otomatis
+                // User harus mencoba lagi atau tekan Skip
+                showFeedback(false, "Jawaban Salah! Coba lagi.");
+                ui.input.value = '';
+                ui.input.focus();
             }
+        }
+
+        // Fungsi Tombol Skip
+        function skipQuestion() {
+            if (!isAnswering && !document.getElementById('feedback').innerText.includes("Salah")) return;
+            
+            // Tampilkan efek skip
+            showFeedback(false, "Dilewati (Tidak ada poin).");
+            isAnswering = false;
 
             setTimeout(() => {
-                currentQuestionIndex++;
-                if (currentQuestionIndex < questions.length) {
-                    loadQuestion();
-                } else {
-                    endGame();
-                }
-            }, 2000);
+                nextQuestion();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
         }
 
         function showFeedback(isCorrect, message) {
             ui.feedback.innerText = message;
             ui.feedback.style.opacity = '1';
-            ui.feedback.className = `mt-6 text-center h-6 font-bold text-lg transition-opacity ${isCorrect ? 'text-green-600' : 'text-red-500'}`;
+            // Jika skip (isCorrect false tapi pesannya dilewati), gunakan warna orange
+            let colorClass = isCorrect ? 'text-green-600' : 'text-red-500';
+            if (message.includes("Dilewati")) colorClass = 'text-orange-500';
+
+            ui.feedback.className = `mt-6 text-center h-6 font-bold text-lg transition-opacity ${colorClass}`;
             
             ui.card.classList.remove('correct-anim', 'wrong-anim');
             void ui.card.offsetWidth; 
@@ -277,6 +313,21 @@
             ui.gameOver.classList.remove('hidden');
             ui.gameOver.classList.add('flex');
             ui.finalScore.innerText = score;
+        }
+
+        // Fungsi Full Screen
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+                ui.fsIcon.classList.replace('fa-expand', 'fa-compress');
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    ui.fsIcon.classList.replace('fa-compress', 'fa-expand');
+                }
+            }
         }
 
         ui.input.addEventListener("keypress", function(event) {
