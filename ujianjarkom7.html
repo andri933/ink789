@@ -37,22 +37,22 @@
         <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
     </button>
 
-    <!-- Container Utama: Diperlebar menjadi max-w-6xl untuk desktop -->
-    <div class="max-w-6xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative min-h-[600px] md:min-h-[700px] flex flex-col">
+    <!-- Container Utama: Kembali ke max-w-4xl agar proporsional -->
+    <div class="max-w-4xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
         
         <!-- Header Ujian -->
         <div class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
             <div class="flex items-center gap-4">
                 <a href="index.html" class="text-slate-500 hover:text-slate-800 transition">
-                    <i class="fa-solid fa-arrow-left text-xl lg:text-2xl"></i>
+                    <i class="fa-solid fa-arrow-left text-xl"></i>
                 </a>
                 <div>
-                    <h1 class="text-lg lg:text-2xl font-bold text-slate-800">Ujian Jaringan Komputer</h1>
-                    <p class="text-xs lg:text-sm text-slate-500">Kelas 7 - Semester 1</p>
+                    <h1 class="text-lg font-bold text-slate-800">Ujian Jaringan Komputer</h1>
+                    <p class="text-xs text-slate-500">Kelas 7 - Semester 1</p>
                 </div>
             </div>
             <!-- Timer (Opsional, visual saja) -->
-            <div class="hidden md:flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-lg text-slate-600 font-mono text-sm lg:text-base">
+            <div class="hidden md:flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-lg text-slate-600 font-mono text-sm">
                 <i class="fa-regular fa-clock"></i> <span>Ujian Sedang Berlangsung</span>
             </div>
         </div>
@@ -60,29 +60,29 @@
         <!-- Loading Screen -->
         <div id="loading-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white transition-opacity duration-500">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-            <p class="text-slate-500 font-medium text-lg">Menyiapkan Lembar Ujian...</p>
+            <p class="text-slate-500 font-medium">Menyiapkan Lembar Ujian...</p>
         </div>
 
         <!-- Result Screen (Hidden initially) -->
         <div id="result-screen" class="hidden absolute inset-0 z-30 bg-white flex-col items-center justify-center text-center p-8">
-            <div class="w-24 h-24 lg:w-32 lg:h-32 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-                <i class="fa-solid fa-clipboard-check text-5xl lg:text-6xl text-blue-600"></i>
+            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                <i class="fa-solid fa-clipboard-check text-5xl text-blue-600"></i>
             </div>
-            <h2 class="text-3xl lg:text-4xl font-bold text-slate-800 mb-2">Ujian Selesai</h2>
-            <p class="text-slate-500 mb-8 lg:text-lg">Berikut adalah hasil pencapaian Anda.</p>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Ujian Selesai</h2>
+            <p class="text-slate-500 mb-8">Berikut adalah hasil pencapaian Anda.</p>
             
-            <div class="grid grid-cols-2 gap-6 w-full max-w-lg mb-10">
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                    <div class="text-sm lg:text-base text-slate-500 mb-1">Jawaban Benar</div>
-                    <div class="text-3xl lg:text-4xl font-bold text-green-600" id="result-correct">0/0</div>
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="text-sm text-slate-500 mb-1">Jawaban Benar</div>
+                    <div class="text-2xl font-bold text-green-600" id="result-correct">0/0</div>
                 </div>
-                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                    <div class="text-sm lg:text-base text-slate-500 mb-1">Nilai Akhir</div>
-                    <div class="text-3xl lg:text-4xl font-bold text-blue-600" id="result-score">0%</div>
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="text-sm text-slate-500 mb-1">Nilai Akhir</div>
+                    <div class="text-3xl font-bold text-blue-600" id="result-score">0%</div>
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="px-10 py-4 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-lg w-full max-w-sm text-lg">
+            <button onclick="location.reload()" class="px-8 py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-700 transition shadow-lg w-full max-w-xs">
                 Kembali ke Awal
             </button>
         </div>
@@ -91,27 +91,27 @@
         <div id="exam-area" class="flex-grow flex flex-col hidden bg-slate-50">
             
             <!-- Question Navigator (Scrollable horizontal) -->
-            <div class="bg-white border-b border-slate-200 px-4 py-3 lg:py-4 overflow-x-auto whitespace-nowrap scrollbar-hide" id="question-nav">
+            <div class="bg-white border-b border-slate-200 px-4 py-3 overflow-x-auto whitespace-nowrap scrollbar-hide" id="question-nav">
                 <!-- Javascript will populate bubbles here -->
             </div>
 
             <div class="flex-grow flex flex-col md:flex-row h-full overflow-hidden">
                 <!-- Question & Options Panel -->
-                <div class="flex-grow p-6 md:p-10 lg:p-16 overflow-y-auto">
+                <div class="flex-grow p-6 md:p-10 overflow-y-auto">
                     
-                    <div class="max-w-4xl mx-auto">
-                        <div class="mb-8 lg:mb-10">
-                            <span class="inline-block px-4 py-1.5 bg-blue-100 text-blue-700 rounded-md text-sm lg:text-base font-bold mb-4">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="mb-6">
+                            <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm font-bold mb-3">
                                 Soal No. <span id="q-number">1</span>
                             </span>
-                            <!-- Ukuran font diperbesar untuk desktop (lg:text-3xl) -->
-                            <h2 id="q-text" class="text-xl md:text-2xl lg:text-3xl font-medium text-slate-800 leading-relaxed">
+                            <!-- Ukuran font disesuaikan kembali (text-xl md:text-2xl) -->
+                            <h2 id="q-text" class="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed">
                                 <!-- Soal Text -->
                             </h2>
                         </div>
 
                         <!-- Options Container -->
-                        <div class="space-y-4 lg:space-y-5" id="options-container">
+                        <div class="space-y-3" id="options-container">
                             <!-- Options rendered by JS -->
                         </div>
                     </div>
@@ -120,16 +120,16 @@
             </div>
 
             <!-- Footer Navigation -->
-            <div class="bg-white border-t border-slate-200 p-4 lg:p-6 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
-                <button onclick="prevQuestion()" id="btn-prev" class="px-6 py-3 rounded-lg border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed lg:text-lg">
+            <div class="bg-white border-t border-slate-200 p-4 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+                <button onclick="prevQuestion()" id="btn-prev" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-600 font-medium hover:bg-slate-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-chevron-left mr-2"></i> Sebelumnya
                 </button>
                 
-                <button onclick="nextQuestion()" id="btn-next" class="px-8 py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-200 lg:text-lg">
+                <button onclick="nextQuestion()" id="btn-next" class="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-lg shadow-blue-200">
                     Selanjutnya <i class="fa-solid fa-chevron-right ml-2"></i>
                 </button>
 
-                <button onclick="finishExam()" id="btn-finish" class="hidden px-8 py-3 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition shadow-lg shadow-green-200 lg:text-lg">
+                <button onclick="finishExam()" id="btn-finish" class="hidden px-6 py-2.5 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition shadow-lg shadow-green-200">
                     Selesai Ujian <i class="fa-solid fa-check ml-2"></i>
                 </button>
             </div>
@@ -148,7 +148,7 @@
         // ==========================================
 
         let questions = [];
-        let userAnswers = {}; // Menyimpan jawaban user { indexSoal: "A/B/C/D" }
+        let userAnswers = {}; 
         let currentIdx = 0;
 
         const ui = {
@@ -180,34 +180,44 @@
         }
 
         function processData(rawData) {
-            // Struktur Data Baru:
-            // Col A (0) = Opsi A
-            // Col B (1) = Opsi B
-            // Col C (2) = Opsi C
-            // Col D (3) = Opsi D
-            // Col E (4) = KUNCI JAWABAN (Disesuaikan)
-            // Col F (5) = SOAL (Disesuaikan)
-
+            // Struktur Data:
+            // Col 0-3: Opsi A-D
+            // Col 4 (E): Kunci Jawaban
+            // Col 5 (F): Soal
+            
             questions = rawData
-                .filter(row => row && row[5]) // Pastikan ada soal di kolom F (index 5)
-                .map((row, index) => ({
-                    id: index,
-                    question: row[5], // Ambil soal dari index 5
-                    options: {
-                        A: row[0],
-                        B: row[1],
-                        C: row[2],
-                        D: row[3]
-                    },
-                    // Mengambil kunci jawaban dari Kolom E (Index 4). Jika kosong, default 'A'.
-                    correctKey: row[4] ? row[4].trim().toUpperCase().replace(/[^A-D]/g, '') : 'A' 
-                }));
+                // FILTER PENTING:
+                // 1. Pastikan kolom F (Soal) tidak kosong
+                // 2. Pastikan kolom F tidak berisi kata "SOAL" (Header Row)
+                // 3. Pastikan kolom E (Kunci) ada isinya
+                .filter(row => row && row[5] && row[5].trim().toUpperCase() !== 'SOAL' && row[4]) 
+                .map((row, index) => {
+                    // Bersihkan kunci jawaban dari spasi atau karakter aneh
+                    // Hanya ambil huruf A, B, C, atau D pertama yang ditemukan
+                    const rawKey = row[4].toString().toUpperCase();
+                    // Regex ini mencari huruf A-D. Jika "Jawaban A", dia ambil "A".
+                    const cleanKey = rawKey.match(/[A-D]/) ? rawKey.match(/[A-D]/)[0] : '';
+
+                    return {
+                        id: index,
+                        question: row[5], 
+                        options: {
+                            A: row[0] || "",
+                            B: row[1] || "",
+                            C: row[2] || "",
+                            D: row[3] || ""
+                        },
+                        correctKey: cleanKey
+                    };
+                });
 
             if (questions.length > 0) {
                 ui.loading.classList.add('hidden');
                 ui.examArea.classList.remove('hidden');
                 renderNavBubbles();
                 loadQuestion(0);
+            } else {
+                alert("Data soal kosong atau format salah. Pastikan kolom F berisi soal dan kolom E berisi kunci jawaban.");
             }
         }
 
@@ -215,8 +225,7 @@
             ui.navContainer.innerHTML = '';
             questions.forEach((q, idx) => {
                 const bubble = document.createElement('button');
-                // Ukuran bubble diperbesar sedikit untuk desktop
-                bubble.className = `w-10 h-10 lg:w-12 lg:h-12 rounded-full text-xs lg:text-sm font-semibold mr-2 lg:mr-3 border border-slate-300 transition-colors ${idx === currentIdx ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 hover:bg-slate-100'}`;
+                bubble.className = `w-8 h-8 rounded-full text-xs font-semibold mr-2 border border-slate-300 transition-colors ${idx === currentIdx ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 hover:bg-slate-100'}`;
                 bubble.innerText = idx + 1;
                 bubble.id = `nav-bubble-${idx}`;
                 bubble.onclick = () => loadQuestion(idx);
@@ -228,20 +237,17 @@
             questions.forEach((q, idx) => {
                 const bubble = document.getElementById(`nav-bubble-${idx}`);
                 
-                // Base style
-                let classes = "w-10 h-10 lg:w-12 lg:h-12 rounded-full text-xs lg:text-sm font-semibold mr-2 lg:mr-3 border transition-colors ";
+                let classes = "w-8 h-8 rounded-full text-xs font-semibold mr-2 border transition-colors ";
                 
-                // Active State (Soal yang sedang dibuka)
                 if (idx === currentIdx) {
                     classes += "ring-2 ring-blue-300 ring-offset-1 ";
                 }
 
-                // Answered State (Sudah dijawab) vs Belum
                 if (userAnswers[idx]) {
                     if (idx === currentIdx) {
                         classes += "bg-blue-600 text-white border-blue-600";
                     } else {
-                        classes += "bg-blue-100 text-blue-700 border-blue-200"; // Sudah dijawab tapi tidak aktif
+                        classes += "bg-blue-100 text-blue-700 border-blue-200"; 
                     }
                 } else {
                      if (idx === currentIdx) {
@@ -262,7 +268,6 @@
             ui.qNum.innerText = index + 1;
             ui.qText.innerText = q.question;
             
-            // Render Options
             ui.optionsContainer.innerHTML = '';
             ['A', 'B', 'C', 'D'].forEach(key => {
                 const label = document.createElement('label');
@@ -272,17 +277,16 @@
 
                 label.innerHTML = `
                     <input type="radio" name="option" class="option-radio hidden" value="${key}" onclick="saveAnswer('${key}')" ${isChecked}>
-                    <div class="flex items-center p-4 lg:p-6 rounded-xl border-2 border-slate-200 bg-white group-hover:border-blue-300 transition-all duration-200">
-                        <div class="circle-indicator w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-slate-300 flex items-center justify-center mr-4 lg:mr-6 text-sm lg:text-base font-bold text-slate-400 group-hover:border-blue-400 transition-colors bg-slate-50 flex-shrink-0">
+                    <div class="flex items-center p-4 rounded-xl border-2 border-slate-200 bg-white group-hover:border-blue-300 transition-all duration-200">
+                        <div class="circle-indicator w-8 h-8 rounded-full border-2 border-slate-300 flex items-center justify-center mr-4 text-sm font-bold text-slate-400 group-hover:border-blue-400 transition-colors bg-slate-50 flex-shrink-0">
                             ${key}
                         </div>
-                        <span class="text-slate-700 text-base md:text-lg lg:text-xl font-medium leading-relaxed">${q.options[key]}</span>
+                        <span class="text-slate-700 text-base md:text-lg font-medium">${q.options[key]}</span>
                     </div>
                 `;
                 ui.optionsContainer.appendChild(label);
             });
 
-            // Update Navigation Buttons
             ui.btnPrev.disabled = index === 0;
             
             if (index === questions.length - 1) {
@@ -293,7 +297,6 @@
                 ui.btnFinish.classList.add('hidden');
             }
 
-            // Scroll nav bubble into view
             const bubble = document.getElementById(`nav-bubble-${index}`);
             if(bubble) bubble.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'center'});
 
@@ -318,7 +321,6 @@
         }
 
         function finishExam() {
-            // Konfirmasi sebelum selesai
             const totalAnswered = Object.keys(userAnswers).length;
             const totalQuestions = questions.length;
             
@@ -334,12 +336,14 @@
             let correctCount = 0;
             
             questions.forEach((q, idx) => {
-                if (userAnswers[idx] && userAnswers[idx] === q.correctKey) {
+                // Pastikan ada jawaban user dan kunci jawaban valid
+                if (userAnswers[idx] && q.correctKey && userAnswers[idx] === q.correctKey) {
                     correctCount++;
                 }
             });
 
-            const score = Math.round((correctCount / questions.length) * 100);
+            // Handle jika questions.length 0 (division by zero)
+            const score = questions.length > 0 ? Math.round((correctCount / questions.length) * 100) : 0;
 
             ui.examArea.classList.add('hidden');
             ui.resultScreen.classList.remove('hidden');
