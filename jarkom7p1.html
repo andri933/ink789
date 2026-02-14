@@ -6,7 +6,7 @@
     <title>Kuis Jarkom 7 - Pertemuan 1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Library untuk membaca CSV dari Google Sheet -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
@@ -31,12 +31,17 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4 relative">
+
+    <!-- Tombol Fullscreen (Floating di Luar Container) -->
+    <button onclick="toggleFullScreen()" class="fixed top-4 right-4 z-50 bg-white/20 hover:bg-white/40 text-white w-10 h-10 rounded-full backdrop-blur-md transition shadow-lg flex items-center justify-center border border-white/30" title="Layar Penuh">
+        <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
+    </button>
 
     <!-- Container Utama -->
     <div class="max-w-2xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative min-h-[500px] flex flex-col">
         
-        <!-- Header (Updated Layout) -->
+        <!-- Header -->
         <div class="bg-white/50 p-4 border-b border-slate-200 grid grid-cols-3 items-center">
             <!-- Kiri: Tombol Kembali -->
             <div class="justify-self-start">
@@ -47,18 +52,15 @@
 
             <!-- Tengah: Skor -->
             <div class="justify-self-center">
-                <div class="font-bold text-slate-700 text-lg md:text-xl border px-4 py-1 rounded-full bg-white shadow-sm">
+                <div class="font-bold text-slate-700 text-lg md:text-xl border px-6 py-1 rounded-full bg-white shadow-sm">
                     Skor: <span id="score" class="text-blue-600">0</span>
                 </div>
             </div>
 
-            <!-- Kanan: Skip & Fullscreen -->
-            <div class="justify-self-end flex gap-2">
-                <button onclick="skipQuestion()" class="bg-orange-100 text-orange-600 hover:bg-orange-200 px-3 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-1" title="Lewati Soal">
+            <!-- Kanan: Tombol Skip -->
+            <div class="justify-self-end">
+                <button onclick="skipQuestion()" class="bg-orange-100 text-orange-600 hover:bg-orange-200 px-4 py-1.5 rounded-lg text-sm font-bold transition flex items-center gap-1" title="Lewati Soal">
                     Skip <i class="fa-solid fa-forward"></i>
-                </button>
-                <button onclick="toggleFullScreen()" class="bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm transition" title="Layar Penuh">
-                    <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
                 </button>
             </div>
         </div>
@@ -80,8 +82,19 @@
             <i class="fa-solid fa-trophy text-6xl text-yellow-400 mb-4 animate-bounce"></i>
             <h2 class="text-3xl font-bold text-slate-800 mb-2">Permainan Selesai!</h2>
             <p class="text-slate-500 mb-6">Kamu telah menyelesaikan semua soal.</p>
-            <div class="text-6xl font-extrabold text-blue-600 mb-8" id="final-score">0</div>
-            <button onclick="location.reload()" class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg">
+            
+            <!-- Skor Akhir & Persentase -->
+            <div class="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-100 w-full max-w-sm">
+                <div class="text-sm text-slate-500 font-medium uppercase tracking-wide mb-1">Total Skor</div>
+                <div class="text-5xl font-extrabold text-blue-600 mb-2" id="final-score">0</div>
+                <div class="border-t border-slate-200 my-2"></div>
+                <div class="flex justify-between items-center mt-2 px-4">
+                    <span class="text-slate-600">Nilai Akhir:</span>
+                    <span class="text-2xl font-bold text-green-600" id="final-percent">0%</span>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition transform hover:scale-105 shadow-lg w-full max-w-xs">
                 Main Lagi
             </button>
         </div>
@@ -94,17 +107,18 @@
             </div>
 
             <!-- Question -->
-            <div class="mb-8 text-center">
+            <div class="mb-6 text-center">
                 <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-full text-xs font-bold mb-4">
                     Soal <span id="current-question-num">1</span> / <span id="total-questions">10</span>
                 </span>
-                <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-slate-800 leading-relaxed">
+                <!-- Ukuran font diperkecil dan tidak bold -->
+                <h2 id="question-text" class="text-xl md:text-2xl font-medium text-slate-800 leading-relaxed">
                     <!-- Soal akan muncul di sini -->
                 </h2>
             </div>
 
             <!-- Answer Input -->
-            <div class="space-y-4">
+            <div class="space-y-4 mt-auto md:mt-0">
                 <input type="text" id="answer-input" 
                     class="w-full p-4 text-center text-lg border-2 border-slate-300 rounded-xl focus:border-blue-500 focus:outline-none transition uppercase placeholder:normal-case font-bold text-slate-700"
                     placeholder="KETIK JAWABANMU..." autocomplete="off">
@@ -154,6 +168,7 @@
             progressBar: document.getElementById('progress-bar'),
             scoreDisplay: document.getElementById('score'),
             finalScore: document.getElementById('final-score'),
+            finalPercent: document.getElementById('final-percent'),
             input: document.getElementById('answer-input'),
             feedback: document.getElementById('feedback'),
             card: document.querySelector('.glass-panel'),
@@ -253,30 +268,25 @@
             }
 
             if (isCorrect) {
-                isAnswering = false; // Kunci jawaban agar tidak double submit
+                isAnswering = false; 
                 score += 10;
                 ui.scoreDisplay.innerText = score;
                 showFeedback(true, "Benar! 🎉");
                 
-                // Lanjut otomatis kalau benar
                 setTimeout(() => {
                     nextQuestion();
                 }, 1500);
 
             } else {
-                // Jika salah: Jangan tampilkan jawaban, Jangan lanjut otomatis
-                // User harus mencoba lagi atau tekan Skip
                 showFeedback(false, "Jawaban Salah! Coba lagi.");
                 ui.input.value = '';
                 ui.input.focus();
             }
         }
 
-        // Fungsi Tombol Skip
         function skipQuestion() {
             if (!isAnswering && !document.getElementById('feedback').innerText.includes("Salah")) return;
             
-            // Tampilkan efek skip
             showFeedback(false, "Dilewati (Tidak ada poin).");
             isAnswering = false;
 
@@ -297,7 +307,6 @@
         function showFeedback(isCorrect, message) {
             ui.feedback.innerText = message;
             ui.feedback.style.opacity = '1';
-            // Jika skip (isCorrect false tapi pesannya dilewati), gunakan warna orange
             let colorClass = isCorrect ? 'text-green-600' : 'text-red-500';
             if (message.includes("Dilewati")) colorClass = 'text-orange-500';
 
@@ -312,10 +321,15 @@
             ui.quizArea.classList.add('hidden');
             ui.gameOver.classList.remove('hidden');
             ui.gameOver.classList.add('flex');
+            
+            // Hitung Persentase
+            const maxPossibleScore = questions.length * 10;
+            const percentage = maxPossibleScore > 0 ? Math.round((score / maxPossibleScore) * 100) : 0;
+
             ui.finalScore.innerText = score;
+            ui.finalPercent.innerText = percentage + "%";
         }
 
-        // Fungsi Full Screen
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -336,7 +350,6 @@
             }
         });
 
-        // Jalankan Game
         initGame();
 
     </script>
