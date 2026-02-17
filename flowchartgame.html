@@ -76,7 +76,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 relative">
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 md:p-4 relative">
 
     <!-- Tombol Fullscreen -->
     <button onclick="toggleFullScreen()" class="fixed top-4 right-4 z-50 bg-white hover:bg-slate-100 text-slate-700 w-10 h-10 rounded-full shadow-lg flex items-center justify-center border border-slate-200 transition" title="Layar Penuh">
@@ -84,71 +84,74 @@
     </button>
 
     <!-- Container Utama -->
-    <div class="max-w-6xl w-full flex flex-col md:flex-row gap-6 h-[90vh]">
+    <!-- UPDATED: Menggunakan h-[95vh] dan pembagian flex yang lebih baik untuk mobile -->
+    <div class="max-w-6xl w-full flex flex-col md:flex-row gap-3 md:gap-6 h-[95vh] md:h-[90vh]">
         
         <!-- SIDEBAR: Info & Bank Soal -->
-        <div class="w-full md:w-1/3 flex flex-col gap-4">
+        <!-- UPDATED: h-[40%] di mobile agar tidak memakan seluruh layar -->
+        <div class="w-full md:w-1/3 flex flex-col gap-2 md:gap-4 h-[40%] md:h-full shrink-0">
             
             <!-- Header Card -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                <a href="index.html" class="text-slate-500 hover:text-blue-600 mb-4 inline-block flex items-center gap-2 text-sm font-semibold">
+            <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-200 shrink-0">
+                <a href="index.html" class="text-slate-500 hover:text-blue-600 mb-2 md:mb-4 inline-block flex items-center gap-2 text-xs md:text-sm font-semibold">
                     <i class="fa-solid fa-arrow-left"></i> Kembali
                 </a>
-                <h1 class="text-2xl font-bold text-slate-800 mb-1">Flowchart Puzzle</h1>
-                <p class="text-slate-500 text-sm">Susun blok algoritma dengan urutan yang logis.</p>
+                <h1 class="text-lg md:text-2xl font-bold text-slate-800 mb-1">Flowchart Puzzle</h1>
+                <p class="text-slate-500 text-xs md:text-sm">Susun blok algoritma dengan urutan yang logis.</p>
                 
-                <div class="mt-4 flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <div class="mt-2 md:mt-4 flex justify-between items-center bg-slate-50 p-2 md:p-3 rounded-lg border border-slate-100">
                     <div>
-                        <span class="text-xs text-slate-400 uppercase font-bold">Level</span>
-                        <div class="text-xl font-bold text-blue-600" id="level-display">1</div>
+                        <span class="text-[10px] md:text-xs text-slate-400 uppercase font-bold">Level</span>
+                        <div class="text-lg md:text-xl font-bold text-blue-600" id="level-display">1</div>
                     </div>
                     <div>
-                        <span class="text-xs text-slate-400 uppercase font-bold">Skor</span>
-                        <div class="text-xl font-bold text-green-600" id="score-display">0</div>
+                        <span class="text-[10px] md:text-xs text-slate-400 uppercase font-bold">Skor</span>
+                        <div class="text-lg md:text-xl font-bold text-green-600" id="score-display">0</div>
                     </div>
                 </div>
             </div>
 
             <!-- Block Bank (Source) -->
-            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex-grow flex flex-col overflow-hidden">
-                <h3 class="font-bold text-slate-700 mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-box-open text-orange-500"></i> Bank Blok (Acak)
+            <div class="bg-white rounded-2xl p-3 md:p-4 shadow-sm border border-slate-200 flex-grow flex flex-col overflow-hidden min-h-0">
+                <h3 class="font-bold text-slate-700 mb-2 md:mb-3 flex items-center gap-2 text-sm md:text-base shrink-0">
+                    <i class="fa-solid fa-box-open text-orange-500"></i> Bank Blok
                 </h3>
-                <p class="text-xs text-slate-400 mb-2">Tarik blok dari sini ke area kanan.</p>
                 
-                <div id="source-list" class="flex-grow overflow-y-auto space-y-3 p-2 bg-slate-50 rounded-xl border border-dashed border-slate-300 min-h-[200px]">
+                <div id="source-list" class="flex-grow overflow-y-auto space-y-2 md:space-y-3 p-2 bg-slate-50 rounded-xl border border-dashed border-slate-300">
                     <!-- Blocks will be injected here -->
                 </div>
             </div>
         </div>
 
         <!-- MAIN AREA: Canvas Flowchart -->
-        <div class="w-full md:w-2/3 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col overflow-hidden relative">
+        <!-- UPDATED: h-[60%] di mobile -->
+        <div class="w-full md:w-2/3 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col overflow-hidden relative h-[60%] md:h-full">
             
-            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <h3 class="font-bold text-slate-700" id="level-title">Loading...</h3>
-                <button onclick="checkAnswer()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold shadow-md transition transform active:scale-95 flex items-center gap-2">
-                    <i class="fa-solid fa-play"></i> Cek Alur
+            <div class="p-3 md:p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-slate-700 text-sm md:text-base truncate mr-2" id="level-title">Loading...</h3>
+                <button onclick="checkAnswer()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold shadow-md transition transform active:scale-95 flex items-center gap-2 text-xs md:text-sm shrink-0">
+                    <i class="fa-solid fa-play"></i> <span class="hidden sm:inline">Cek Alur</span><span class="sm:hidden">Cek</span>
                 </button>
             </div>
 
             <!-- Drop Zone -->
-            <div class="flex-grow overflow-y-auto p-6 relative bg-grid-slate-100">
+            <div class="flex-grow overflow-y-auto p-4 md:p-6 relative bg-grid-slate-100">
                 <!-- Background Grid Pattern -->
                 <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px;"></div>
 
-                <div class="max-w-md mx-auto relative z-10">
+                <div class="max-w-md mx-auto relative z-10 min-h-full flex flex-col">
                     
-                    <div class="text-center mb-4 text-xs text-slate-400 font-mono">-- MULAI --</div>
+                    <div class="text-center mb-4 text-xs text-slate-400 font-mono shrink-0">-- MULAI --</div>
                     
-                    <div id="target-list" class="space-y-4 min-h-[300px] pb-20">
+                    <!-- UPDATED: min-h dikurangi agar tidak overflow di layar kecil -->
+                    <div id="target-list" class="space-y-3 md:space-y-4 flex-grow min-h-[150px] pb-10">
                         <!-- Drop Target -->
-                        <div class="text-slate-400 text-center italic mt-10 pointer-events-none" id="empty-msg">
+                        <div class="text-slate-400 text-center italic mt-4 md:mt-10 pointer-events-none text-sm" id="empty-msg">
                             Seret blok ke sini...
                         </div>
                     </div>
 
-                    <div class="text-center mt-4 text-xs text-slate-400 font-mono">-- SELESAI --</div>
+                    <div class="text-center mt-4 text-xs text-slate-400 font-mono shrink-0">-- SELESAI --</div>
 
                 </div>
             </div>
@@ -243,10 +246,14 @@
         // ==========================================
         function initGame() {
             // Setup SortableJS
+            // Updated: Added touch-action fix logic implicitly by Sortable, 
+            // but we add touch-none class to elements
             sourceSortable = new Sortable(ui.sourceList, {
                 group: 'shared', // set both lists to same group
                 animation: 150,
-                sort: false // disable sorting in source
+                sort: false, // disable sorting in source
+                delay: 100, // slight delay prevents accidental drags on scroll
+                delayOnTouchOnly: true
             });
 
             targetSortable = new Sortable(ui.targetList, {
@@ -295,19 +302,20 @@
         function createBlockElement(block) {
             const div = document.createElement('div');
             div.dataset.id = block.id;
-            div.className = "cursor-grab select-none font-medium text-center shadow-sm text-sm relative z-10 p-3";
+            // UPDATED: Added 'touch-none' to prevent page scrolling when touching blocks
+            div.className = "cursor-grab select-none font-medium text-center shadow-sm text-sm relative z-10 p-2 md:p-3 touch-none";
             
             // Apply shape styles
             if (block.type === 'terminator') {
-                div.classList.add('shape-terminator', 'px-6', 'py-2');
+                div.classList.add('shape-terminator', 'px-4', 'md:px-6', 'py-2');
             } else if (block.type === 'process') {
-                div.classList.add('shape-process', 'px-4', 'py-3');
+                div.classList.add('shape-process', 'px-3', 'md:px-4', 'py-2', 'md:py-3');
             } else if (block.type === 'input') {
-                div.classList.add('shape-input', 'px-4', 'py-2');
+                div.classList.add('shape-input', 'px-3', 'md:px-4', 'py-2');
                 div.innerHTML = `<div>${block.text}</div>`; // Inner div to un-skew text
                 return div; // Return early because innerHTML set
             } else if (block.type === 'decision') {
-                div.classList.add('shape-decision', 'w-32', 'h-24', 'mx-auto');
+                div.classList.add('shape-decision', 'w-24', 'md:w-32', 'h-20', 'md:h-24', 'mx-auto', 'text-xs', 'md:text-sm');
                 // Adjust text for diamond
                 div.innerHTML = `<span style="transform: rotate(0deg); text-align:center; line-height:1.1;">${block.text}</span>`;
                 return div;
