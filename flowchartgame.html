@@ -65,23 +65,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             z-index: 9999;
         }
-
-        /* Auto Arrow Connector using CSS */
-        .flow-block-wrapper:not(:last-child)::after {
-            content: '↓';
-            display: block;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        /* Hide arrow when dragging */
-        .sortable-ghost::after {
-            display: none;
-        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex items-center justify-center p-2 md:p-4">
@@ -312,10 +295,12 @@
         }
 
         function createBlockElement(block) {
-            // Wrapper untuk memfasilitasi CSS arrow connector
+            // Wrapper untuk container blok
             const wrapper = document.createElement('div');
-            wrapper.className = "flow-block-wrapper";
-            wrapper.dataset.id = block.id; // ID disimpan di wrapper untuk pengecekan
+            // 'w-fit mx-auto' memastikan wrapper hanya selebar kontennya,
+            // sehingga area kosong di kiri/kanan bisa dipakai untuk scroll.
+            wrapper.className = "flow-block-wrapper w-fit mx-auto my-3";
+            wrapper.dataset.id = block.id;
 
             const div = document.createElement('div');
             div.className = "cursor-grab active:cursor-grabbing font-bold text-center shadow-md text-sm relative z-10 transition-transform transform active:scale-105 touch-none mx-auto select-none";
