@@ -6,25 +6,43 @@
     <title>Kuis Caesar Cipher - InfoEdu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Library untuk membaca CSV dari Google Sheet -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <style>
         body { font-family: 'Poppins', sans-serif; }
-        
         .glass-panel {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .correct-anim { animation: pulseGreen 0.5s ease-in-out; }
+        .wrong-anim { animation: shakeRed 0.5s ease-in-out; }
+        
+        /* Animasi Input */
+        .char-input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #ef4444; /* red-500 */
+        }
+        
+        @keyframes pulseGreen {
+            0%, 100% { background-color: white; }
+            50% { background-color: #dcfce7; transform: scale(1.02); }
+        }
+        @keyframes shakeRed {
+            0%, 100% { transform: translateX(0); background-color: white; }
+            25% { transform: translateX(-5px); background-color: #fee2e2; }
+            75% { transform: translateX(5px); background-color: #fee2e2; }
         }
 
-        /* Animations */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-5px); }
-            40%, 80% { transform: translateX(5px); }
-        }
-        .shake {
-            animation: shake 0.4s ease-in-out;
+        /* Hapus arrow pada input number (jika ada) */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         @keyframes popIn {
@@ -34,407 +52,385 @@
         .pop-in {
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-
-        /* Option Button Styles */
-        .option-btn {
-            transition: all 0.2s ease;
-        }
-        .option-btn:not(:disabled):hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        .option-btn.correct {
-            background-color: #dcfce7 !important;
-            border-color: #22c55e !important;
-            color: #166534 !important;
-        }
-        .option-btn.wrong {
-            background-color: #fee2e2 !important;
-            border-color: #ef4444 !important;
-            color: #991b1b !important;
-            opacity: 0.7;
-        }
-        .option-btn:disabled {
-            cursor: not-allowed;
-        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="bg-gradient-to-br from-slate-800 to-slate-900 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
     <!-- Background Decoration -->
     <div class="absolute inset-0 z-0 opacity-20 pointer-events-none">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-red-400 rounded-full mix-blend-multiply filter blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-96 h-96 bg-red-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl"></div>
     </div>
 
     <!-- Tombol Fullscreen -->
-    <button onclick="toggleFullScreen()" class="fixed top-4 right-4 z-50 bg-white/50 hover:bg-white text-slate-700 w-10 h-10 rounded-full backdrop-blur-md transition shadow flex items-center justify-center border border-slate-200" title="Layar Penuh">
+    <button onclick="toggleFullScreen()" class="fixed top-4 right-4 z-50 bg-white/10 hover:bg-white/20 text-white w-10 h-10 rounded-full backdrop-blur-md transition shadow flex items-center justify-center border border-white/20" title="Layar Penuh">
         <i class="fa-solid fa-expand" id="fullscreen-icon"></i>
     </button>
 
     <!-- Container Utama -->
-    <div class="max-w-3xl w-full glass-panel rounded-3xl shadow-xl relative z-10 flex flex-col min-h-[80vh] md:min-h-[600px]">
+    <div class="max-w-2xl w-full glass-panel rounded-2xl shadow-2xl overflow-hidden relative z-10 min-h-[500px] flex flex-col">
         
         <!-- Header -->
-        <div class="border-b border-slate-200 px-6 py-4 flex justify-between items-center bg-white/50 rounded-t-3xl">
-            <div class="flex items-center gap-4">
-                <a href="index.html" class="text-slate-500 hover:text-blue-600 transition flex items-center gap-2 font-medium">
-                    <i class="fa-solid fa-arrow-left"></i> <span class="hidden md:inline">Kembali</span>
+        <div class="bg-white/50 p-4 border-b border-slate-200 grid grid-cols-3 items-center">
+            <!-- Kiri: Tombol Kembali -->
+            <div class="justify-self-start">
+                <a href="index.html" class="text-slate-600 hover:text-red-600 font-semibold flex items-center gap-2 text-sm md:text-base transition-colors">
+                    <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Kembali</span>
                 </a>
-                <div class="h-6 w-px bg-slate-300"></div>
-                <h1 class="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-user-secret text-red-500"></i> Kuis Caesar Cipher
-                </h1>
             </div>
-            
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 text-sm font-bold text-blue-700 shadow-sm flex items-center gap-2">
-                    <i class="fa-solid fa-star text-yellow-500"></i> Skor: <span id="score-display">0</span>
+
+            <!-- Tengah: Skor -->
+            <div class="justify-self-center">
+                <div class="font-bold text-slate-700 text-lg md:text-xl border px-6 py-1 rounded-full bg-white shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-star text-yellow-500"></i> Skor: <span id="score" class="text-red-600">0</span>
                 </div>
             </div>
+
+            <!-- Kanan: Kosong -->
+            <div class="justify-self-end w-8"></div>
         </div>
 
-        <!-- Progress Bar -->
-        <div class="w-full bg-slate-200 h-1.5">
-            <div id="progress-bar" class="bg-red-500 h-1.5 transition-all duration-500 w-0"></div>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="flex-grow flex flex-col p-6 md:p-8 relative">
-            
-            <!-- Loading Screen -->
-            <div id="loading-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-20 rounded-b-3xl">
-                <i id="loading-icon" class="fa-solid fa-circle-notch fa-spin text-5xl text-red-500 mb-4"></i>
-                <p class="text-slate-600 font-medium animate-pulse">Mengambil data soal dari database...</p>
-                <p class="text-xs text-slate-400 mt-2 text-center px-4" id="loading-error"></p>
-            </div>
-
-            <!-- Quiz Content (Hidden by default) -->
-            <div id="quiz-container" class="hidden flex-col h-full">
-                
-                <!-- Question Header -->
-                <div class="flex justify-between items-center mb-6">
-                    <span class="text-sm font-bold text-slate-400 uppercase tracking-widest" id="question-counter">Soal 1 / 10</span>
-                </div>
-
-                <!-- Question Text -->
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8 min-h-[120px] flex items-center">
-                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 leading-relaxed w-full" id="question-text">
-                        Memuat pertanyaan...
-                    </h2>
-                </div>
-
-                <!-- Options Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow" id="options-container">
-                    <!-- Options will be injected here by JS -->
-                </div>
-
-                <!-- Feedback & Next Button Area -->
-                <div class="mt-8 flex flex-col items-center justify-center min-h-[80px]">
-                    <div id="feedback-msg" class="text-lg font-bold mb-3 opacity-0 transition-opacity duration-300 text-center"></div>
-                    
-                    <button id="next-btn" onclick="nextQuestion()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-red-200 transition transform active:scale-95 flex items-center gap-2">
-                        Soal Selanjutnya <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-    <!-- Win Modal -->
-    <div id="win-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-        <div class="bg-white border border-slate-200 p-8 rounded-3xl text-center max-w-sm w-full shadow-2xl pop-in">
-            <div class="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-green-200">
-                <i class="fa-solid fa-trophy text-4xl"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-slate-800 mb-2">Luar Biasa!</h2>
-            <p class="text-slate-500 mb-6">Kamu telah menyelesaikan semua soal Kriptografi Caesar.</p>
-            
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
-                <p class="text-sm text-slate-500 uppercase font-bold mb-1">Skor Akhir</p>
-                <p class="text-4xl font-extrabold text-blue-600" id="final-score">100</p>
-            </div>
-
-            <div class="flex flex-col gap-3">
-                <button onclick="location.reload()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-red-200">
-                    Main Ulang
+        <!-- Loading / Error Screen -->
+        <div id="loading-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-opacity duration-500 p-8 text-center">
+            <div id="loader-icon" class="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600 mb-4"></div>
+            <h3 class="text-lg font-bold text-slate-700 mb-2" id="loading-title">Memuat Sandi Rahasia...</h3>
+            <p class="text-slate-500 text-sm" id="loading-message">Menghubungkan ke database</p>
+            <div id="error-actions" class="hidden mt-6">
+                <button onclick="location.reload()" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition shadow-lg">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Coba Lagi
                 </button>
-                <a href="index.html" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition">
-                    Kembali ke Menu
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="hidden absolute inset-0 z-30 bg-white flex-col items-center justify-center text-center p-8 pop-in">
+            <i class="fa-solid fa-user-secret text-6xl text-slate-800 mb-4"></i>
+            <h2 class="text-3xl font-bold text-slate-800 mb-2">Misi Selesai!</h2>
+            <p class="text-slate-500 mb-6">Kamu telah memecahkan semua kode rahasia.</p>
+            
+            <div class="mb-8 p-6 bg-slate-50 rounded-xl border border-slate-200 w-full max-w-sm">
+                <div class="text-sm text-slate-500 font-medium uppercase tracking-wide mb-1">Total Skor</div>
+                <div class="text-5xl font-extrabold text-red-600 mb-2" id="final-score">0</div>
+            </div>
+
+            <div class="flex gap-3 w-full max-w-xs">
+                <button onclick="location.reload()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-lg">
+                    Ulangi Misi
+                </button>
+                <a href="index.html" class="flex-1 py-3 bg-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-300 transition flex items-center justify-center">
+                    Menu
                 </a>
+            </div>
+        </div>
+
+        <!-- Quiz Area -->
+        <div id="quiz-area" class="p-6 md:p-10 flex-grow flex flex-col justify-center hidden">
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 rounded-full h-2 mb-6">
+                <div id="progress-bar" class="bg-red-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- Question Info -->
+            <div class="flex flex-col items-center justify-center mb-6">
+                <span class="inline-block px-4 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-xs font-bold mb-4 uppercase tracking-widest">
+                    Pesan <span id="current-question-num">1</span> / <span id="total-questions">10</span>
+                </span>
+                
+                <p class="text-sm text-slate-500 mb-2">Dekripsi pesan berikut:</p>
+                <div class="bg-slate-800 text-white px-8 py-4 rounded-xl border-2 border-slate-700 shadow-inner font-mono text-2xl md:text-3xl tracking-[0.2em] font-bold text-center break-all w-full max-w-lg" id="question-text">
+                    <!-- Soal (Clue) muncul di sini -->
+                </div>
+            </div>
+
+            <!-- Kotak Jawaban (Dynamic Inputs) -->
+            <div id="input-container" class="flex flex-wrap justify-center gap-2 md:gap-3 mb-8">
+                <!-- Input kotak akan di-generate oleh Javascript -->
+            </div>
+
+            <!-- Action Button -->
+            <button id="submit-btn" onclick="checkAnswer()" 
+                class="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-lg shadow-lg shadow-red-200 transition transform active:scale-95 flex items-center justify-center gap-2 mt-auto">
+                <span>Cek Sandi</span> <i class="fa-solid fa-unlock-keyhole"></i>
+            </button>
+
+            <!-- Feedback Message -->
+            <div id="feedback" class="mt-4 text-center h-6 font-semibold text-lg transition-opacity opacity-0">
+                <!-- Feedback muncul di sini -->
             </div>
         </div>
     </div>
 
+    <!-- SCRIPT LOGIC -->
     <script>
         // ==========================================
-        // CONFIGURATION & STATE
+        // KONFIGURASI
         // ==========================================
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSRTESr5U38MR01quLz0VXcrwVcanIJUvMPjPX5lNOY40lP5p4czGenzphqymxPlSPmAnJVVYeL70M1/pub?gid=675815415&single=true&output=csv';
-        
-        let questions = [];
-        let currentIndex = 0;
-        let score = 0;
-        let answeredCorrectlyForCurrent = false;
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSRTESr5U38MR01quLz0VXcrwVcanIJUvMPjPX5lNOY40lP5p4czGenzphqymxPlSPmAnJVVYeL70M1/pub?gid=675815415&single=true&output=csv'; 
 
-        // UI Elements
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+
         const ui = {
-            loadingScreen: document.getElementById('loading-screen'),
-            loadingIcon: document.getElementById('loading-icon'),
-            loadingError: document.getElementById('loading-error'),
-            quizContainer: document.getElementById('quiz-container'),
+            loading: document.getElementById('loading-screen'),
+            loaderIcon: document.getElementById('loader-icon'),
+            loadingTitle: document.getElementById('loading-title'),
+            loadingMessage: document.getElementById('loading-message'),
+            errorActions: document.getElementById('error-actions'),
+            quizArea: document.getElementById('quiz-area'),
+            gameOver: document.getElementById('game-over-screen'),
             questionText: document.getElementById('question-text'),
-            optionsContainer: document.getElementById('options-container'),
-            questionCounter: document.getElementById('question-counter'),
-            scoreDisplay: document.getElementById('score-display'),
+            currentNum: document.getElementById('current-question-num'),
+            totalNum: document.getElementById('total-questions'),
             progressBar: document.getElementById('progress-bar'),
-            feedbackMsg: document.getElementById('feedback-msg'),
-            nextBtn: document.getElementById('next-btn'),
-            winModal: document.getElementById('win-modal'),
+            scoreDisplay: document.getElementById('score'),
             finalScore: document.getElementById('final-score'),
-            fsIcon: document.getElementById('fullscreen-icon')
+            feedback: document.getElementById('feedback'),
+            card: document.querySelector('.glass-panel'),
+            fsIcon: document.getElementById('fullscreen-icon'),
+            inputContainer: document.getElementById('input-container'),
+            submitBtn: document.getElementById('submit-btn')
         };
 
-        // ==========================================
-        // INITIALIZATION & DATA FETCHING
-        // ==========================================
-        async function initGame() {
-            try {
-                const response = await fetch(CSV_URL);
-                if (!response.ok) throw new Error('Gagal mengunduh data CSV');
-                
-                const csvText = await response.text();
-                parseCSVAndStart(csvText);
-                
-            } catch (error) {
-                console.error("Error fetching CSV:", error);
-                ui.loadingError.innerHTML = `Gagal memuat soal. Pastikan koneksi internet aktif.<br>Error: ${error.message}`;
-                if(ui.loadingIcon) {
-                    ui.loadingIcon.classList.replace('fa-circle-notch', 'fa-triangle-exclamation');
-                    ui.loadingIcon.classList.remove('fa-spin');
+        // --- Init Game ---
+        function initGame() {
+            if (!GOOGLE_SHEET_CSV_URL) return;
+
+            Papa.parse(GOOGLE_SHEET_CSV_URL, {
+                download: true,
+                header: false, // Tidak pakai header, langsung baca baris 1
+                complete: function(results) {
+                    const success = processData(results.data);
+                    if (!success) {
+                        showError("Data Kosong", "Pastikan CSV memiliki minimal 2 kolom (Clue & Jawaban).");
+                    }
+                },
+                error: function(err) {
+                    console.error("Gagal ambil CSV:", err);
+                    showError("Gagal Terhubung", "Tidak dapat menghubungi database. Periksa koneksi internet Anda.");
                 }
-            }
+            });
         }
 
-        // CSV Parser Logic
-        function parseCSVAndStart(csvText) {
-            // Function to parse CSV respecting quotes
-            function csvToArray(strData, strDelimiter = ",") {
-                const objPattern = new RegExp((
-                    "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
-                    "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
-                    "([^\"\\" + strDelimiter + "\\r\\n]*))"
-                ), "gi");
-                let arrData = [[]];
-                let arrMatches = null;
-                while (arrMatches = objPattern.exec(strData)) {
-                    let strMatchedDelimiter = arrMatches[1];
-                    if (strMatchedDelimiter.length && strMatchedDelimiter !== strDelimiter) {
-                        arrData.push([]);
-                    }
-                    let strMatchedValue;
-                    if (arrMatches[2]) {
-                        strMatchedValue = arrMatches[2].replace(new RegExp("\"\"", "g"), "\"");
-                    } else {
-                        strMatchedValue = arrMatches[3];
-                    }
-                    arrData[arrData.length - 1].push(strMatchedValue);
-                }
-                return arrData;
-            }
-
-            const rawData = csvToArray(csvText.trim());
-            if (rawData.length < 2) {
-                throw new Error("CSV kosong atau format salah");
-            }
-
-            // Extract Headers and normalize them to lower case
-            const headers = rawData[0].map(h => h ? h.trim().toLowerCase() : '');
-            
-            // Log headers to debug mapping
-            console.log("Found CSV Headers:", headers);
-
-            // Find column indices - more flexible matching
-            const colPertanyaan = headers.findIndex(h => h.includes('pertanyaan') || h.includes('soal') || h === 'question');
-            
-            // Try to find exactly 'a', 'b', 'c', 'd' or 'opsi a', etc.
-            let colA = headers.findIndex(h => h === 'a' || h === 'opsi a' || h.includes('pilihan a'));
-            let colB = headers.findIndex(h => h === 'b' || h === 'opsi b' || h.includes('pilihan b'));
-            let colC = headers.findIndex(h => h === 'c' || h === 'opsi c' || h.includes('pilihan c'));
-            let colD = headers.findIndex(h => h === 'd' || h === 'opsi d' || h.includes('pilihan d'));
-            
-            // If explicit matching fails, fallback to finding 'opsi' anywhere in the header
-            if(colA === -1) colA = headers.findIndex(h => h.includes('opsi') && h.includes('a'));
-            if(colB === -1) colB = headers.findIndex(h => h.includes('opsi') && h.includes('b'));
-            if(colC === -1) colC = headers.findIndex(h => h.includes('opsi') && h.includes('c'));
-            if(colD === -1) colD = headers.findIndex(h => h.includes('opsi') && h.includes('d'));
-
-            const colJawaban = headers.findIndex(h => h.includes('jawaban') || h.includes('kunci') || h === 'answer');
-
-            // Validation
-            if (colPertanyaan === -1 || colJawaban === -1) {
-                throw new Error(`Header CSV tidak sesuai standar. Ditemukan: ${headers.join(', ')}`);
-            }
-
-            // Map data
-            questions = [];
-            for (let i = 1; i < rawData.length; i++) {
-                const row = rawData[i];
-                if (row.length < 2 || !row[colPertanyaan]) continue; // Skip empty rows
-
-                const qObj = {
-                    pertanyaan: row[colPertanyaan].trim(),
-                    opsi: [
-                        { label: 'A', text: colA !== -1 && row[colA] ? row[colA].trim() : 'Opsi A' },
-                        { label: 'B', text: colB !== -1 && row[colB] ? row[colB].trim() : 'Opsi B' },
-                        { label: 'C', text: colC !== -1 && row[colC] ? row[colC].trim() : 'Opsi C' },
-                        { label: 'D', text: colD !== -1 && row[colD] ? row[colD].trim() : 'Opsi D' }
-                    ],
-                    jawaban: row[colJawaban].trim()
-                };
-                questions.push(qObj);
-            }
-
-            if(questions.length === 0) {
-                 throw new Error("Tidak ada pertanyaan yang valid di CSV");
-            }
-
-            // Acak urutan soal
-            questions.sort(() => Math.random() - 0.5);
-
-            // Hide loading, show quiz
-            ui.loadingScreen.classList.add('hidden');
-            ui.quizContainer.classList.remove('hidden');
-            ui.quizContainer.classList.add('flex');
-
-            loadQuestion();
+        function showError(title, message) {
+            ui.loaderIcon.className = "fa-solid fa-triangle-exclamation text-5xl text-red-500 mb-4";
+            ui.loadingTitle.innerText = title;
+            ui.loadingTitle.classList.add("text-red-600");
+            ui.loadingMessage.innerText = message;
+            ui.errorActions.classList.remove("hidden");
         }
 
-        // ==========================================
-        // QUIZ LOGIC
-        // ==========================================
+        function processData(rawData) {
+            if (!rawData || rawData.length === 0) return false;
+
+            // Baca dari baris pertama (index 0)
+            const processedQuestions = rawData
+                .filter(row => row && row[0] && row[1]) 
+                .map(row => ({
+                    question: row[0].trim(),
+                    answer: row[1].trim().toUpperCase()
+                }));
+
+            if (processedQuestions.length > 0) {
+                questions = processedQuestions;
+                questions.sort(() => Math.random() - 0.5); // Acak soal
+
+                ui.loading.classList.add('hidden');
+                ui.quizArea.classList.remove('hidden');
+                ui.totalNum.innerText = questions.length;
+                
+                loadQuestion();
+                return true; 
+            }
+            return false; 
+        }
+
+        // --- Load Question & Generate Boxes ---
         function loadQuestion() {
-            if (currentIndex >= questions.length) {
-                endGame();
+            const q = questions[currentQuestionIndex];
+            
+            ui.questionText.innerText = q.question;
+            ui.currentNum.innerText = currentQuestionIndex + 1;
+            ui.feedback.style.opacity = '0';
+            
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            ui.progressBar.style.width = `${progress}%`;
+            
+            // Tombol di-reset
+            ui.submitBtn.disabled = false;
+            ui.submitBtn.innerHTML = `<span>Cek Sandi</span> <i class="fa-solid fa-unlock-keyhole"></i>`;
+            ui.submitBtn.classList.replace('bg-green-600', 'bg-red-600');
+            ui.submitBtn.classList.replace('hover:bg-green-700', 'hover:bg-red-700');
+
+            createInputBoxes(q.answer);
+        }
+
+        function createInputBoxes(answer) {
+            ui.inputContainer.innerHTML = ''; 
+
+            for (let i = 0; i < answer.length; i++) {
+                const char = answer[i];
+
+                if (char === ' ' || char === '-') {
+                    const separator = document.createElement('div');
+                    separator.className = 'w-4 md:w-6 h-12 flex items-center justify-center text-slate-400 font-bold';
+                    separator.innerText = char === '-' ? '-' : '';
+                    ui.inputContainer.appendChild(separator);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.maxLength = 1;
+                    input.className = 'char-input w-10 h-12 md:w-12 md:h-14 border-2 border-slate-300 rounded-lg text-center text-xl md:text-2xl font-bold uppercase text-slate-700 focus:outline-none transition-colors bg-white';
+                    
+                    input.addEventListener('input', (e) => handleInput(e, input));
+                    input.addEventListener('keydown', (e) => handleKeyDown(e, input));
+                    input.addEventListener('focus', () => input.select());
+
+                    ui.inputContainer.appendChild(input);
+                }
+            }
+
+            const firstInput = ui.inputContainer.querySelector('input');
+            if(firstInput) setTimeout(() => firstInput.focus(), 100);
+        }
+
+        // --- Input Handling ---
+        function handleInput(e, input) {
+            const val = e.target.value.toUpperCase();
+            e.target.value = val; 
+
+            if (val.length === 1) {
+                let next = input.nextElementSibling;
+                while (next && next.tagName !== 'INPUT') next = next.nextElementSibling;
+                if (next) next.focus();
+            }
+        }
+
+        function handleKeyDown(e, input) {
+            if (e.key === 'Backspace' && input.value === '') {
+                let prev = input.previousElementSibling;
+                while (prev && prev.tagName !== 'INPUT') prev = prev.previousElementSibling;
+                if (prev) prev.focus();
+            } else if (e.key === 'Enter') {
+                checkAnswer();
+            } else if (e.key === 'ArrowRight') {
+                let next = input.nextElementSibling;
+                while (next && next.tagName !== 'INPUT') next = next.nextElementSibling;
+                if (next) next.focus();
+            } else if (e.key === 'ArrowLeft') {
+                let prev = input.previousElementSibling;
+                while (prev && prev.tagName !== 'INPUT') prev = prev.previousElementSibling;
+                if (prev) prev.focus();
+            }
+        }
+
+        // --- Game Logic ---
+        function checkAnswer() {
+            if (ui.submitBtn.disabled) return; // Mencegah double click saat delay transisi
+
+            const inputs = ui.inputContainer.querySelectorAll('input');
+            let fullUserAnswer = ''; 
+            let inputIndex = 0;
+            const correctAnswer = questions[currentQuestionIndex].answer;
+
+            for (let i = 0; i < correctAnswer.length; i++) {
+                const char = correctAnswer[i];
+                if (char === ' ' || char === '-') {
+                    fullUserAnswer += char;
+                } else {
+                    if (inputs[inputIndex]) {
+                        fullUserAnswer += inputs[inputIndex].value.toUpperCase();
+                        inputIndex++;
+                    }
+                }
+            }
+
+            let isComplete = true;
+            inputs.forEach(inp => { if(inp.value === '') isComplete = false; });
+            
+            if (!isComplete) {
+                showFeedback(false, "Lengkapi pesan terlebih dahulu!");
+                inputs.forEach(inp => {
+                    if(inp.value === '') inp.classList.add('border-red-400');
+                    setTimeout(() => inp.classList.remove('border-red-400'), 500);
+                });
                 return;
             }
 
-            const q = questions[currentIndex];
-            answeredCorrectlyForCurrent = false;
+            const cleanUser = fullUserAnswer.replace(/[^A-Z0-9]/g, '');
+            const cleanKey = correctAnswer.replace(/[^A-Z0-9]/g, '');
 
-            // Update UI Counters
-            ui.questionCounter.innerText = `Soal ${currentIndex + 1} / ${questions.length}`;
-            const progress = ((currentIndex) / questions.length) * 100;
-            ui.progressBar.style.width = `${progress}%`;
-
-            // Setup Question
-            ui.questionText.innerText = q.pertanyaan;
-
-            // Setup Options
-            ui.optionsContainer.innerHTML = '';
-            
-            // Acak opsi
-            const shuffledOptions = [...q.opsi].sort(() => Math.random() - 0.5);
-
-            shuffledOptions.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = "option-btn bg-white border-2 border-slate-200 text-slate-700 font-medium py-4 px-6 rounded-xl text-left w-full flex items-center gap-4 group";
-                btn.innerHTML = `
-                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-sm border border-slate-200 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">
-                        ${String.fromCharCode(65 + index)}
-                    </div>
-                    <span class="flex-grow">${opt.text}</span>
-                `;
+            if (cleanUser === cleanKey) {
+                // --- BENAR ---
+                score += 10;
+                ui.scoreDisplay.innerText = score;
                 
-                // Event Listener
-                btn.onclick = () => checkAnswer(btn, opt.label, q.jawaban);
-                
-                ui.optionsContainer.appendChild(btn);
-            });
-
-            // Reset Feedback & Next button
-            ui.feedbackMsg.style.opacity = '0';
-            ui.nextBtn.classList.add('hidden');
-        }
-
-        function checkAnswer(btnElement, selectedLabel, correctLabel) {
-            // Jika sudah benar, jangan biarkan klik lagi
-            if (answeredCorrectlyForCurrent) return;
-
-            // Validasi: Normalisasi input dari CSV untuk pencegahan error whitespace
-            const sLabel = selectedLabel.toString().trim().toUpperCase();
-            const cLabel = correctLabel.toString().trim().toUpperCase();
-
-            if (sLabel === cLabel) {
-                // JAWABAN BENAR
-                answeredCorrectlyForCurrent = true;
-                
-                // Styling
-                btnElement.classList.add('correct');
-                
-                // Matikan semua tombol
-                const allBtns = ui.optionsContainer.querySelectorAll('.option-btn');
-                allBtns.forEach(b => {
-                    b.disabled = true;
-                    if (!b.classList.contains('correct')) {
-                        b.style.opacity = '0.5';
-                    }
+                inputs.forEach(inp => {
+                    inp.disabled = true;
+                    inp.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
                 });
 
-                // Tambah Skor (Tiap soal bernilai sama rata agar total 100)
-                const pointPerQ = 100 / questions.length;
-                score += pointPerQ;
-                ui.scoreDisplay.innerText = Math.round(score);
+                ui.submitBtn.disabled = true;
+                ui.submitBtn.classList.replace('bg-red-600', 'bg-green-600');
+                ui.submitBtn.classList.replace('hover:bg-red-700', 'hover:bg-green-700');
+                ui.submitBtn.innerHTML = `<span>Terpecahkan!</span> <i class="fa-solid fa-check"></i>`;
 
-                // Feedback
-                ui.feedbackMsg.innerHTML = '<i class="fa-solid fa-circle-check"></i> Jawaban Tepat!';
-                ui.feedbackMsg.className = "text-lg font-bold mb-3 transition-opacity duration-300 text-center text-green-500 pop-in";
-                ui.feedbackMsg.style.opacity = '1';
-
-                // Munculkan tombol next
-                ui.nextBtn.classList.remove('hidden');
-                ui.nextBtn.classList.add('pop-in');
+                showFeedback(true, `Sandi Berhasil Didekripsi! 🎉`);
+                
+                // Lanjut ke soal berikutnya secara otomatis
+                setTimeout(() => nextQuestion(), 1500);
 
             } else {
-                // JAWABAN SALAH
-                btnElement.classList.add('wrong', 'shake');
+                // --- SALAH (Bisa Coba Lagi Terus) ---
+                showFeedback(false, "Sandi Salah, coba pecahkan lagi!");
                 
-                // Hilangkan class shake setelah animasi selesai agar bisa diklik/shake lagi
+                inputs.forEach(inp => {
+                    inp.value = ''; 
+                    inp.classList.add('border-red-500'); 
+                });
+                
+                ui.card.classList.add('wrong-anim');
                 setTimeout(() => {
-                    btnElement.classList.remove('shake');
-                }, 400);
+                    ui.card.classList.remove('wrong-anim');
+                    inputs.forEach(inp => inp.classList.remove('border-red-500'));
+                    inputs[0].focus();
+                }, 500);
+            }
+        }
 
-                // Feedback
-                ui.feedbackMsg.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Kurang Tepat, Coba Lagi!';
-                ui.feedbackMsg.className = "text-lg font-bold mb-3 transition-opacity duration-300 text-center text-red-500";
-                ui.feedbackMsg.style.opacity = '1';
-                
-                // Sembunyikan pesan setelah beberapa saat
-                setTimeout(() => {
-                    if (!answeredCorrectlyForCurrent) ui.feedbackMsg.style.opacity = '0';
-                }, 2000);
+        function showFeedback(isCorrect, message) {
+            ui.feedback.innerText = message;
+            ui.feedback.style.opacity = '1';
+            let colorClass = isCorrect ? 'text-green-600' : 'text-red-500';
+            ui.feedback.className = `mt-4 text-center h-6 font-bold text-lg transition-opacity ${colorClass}`;
+            
+            if(isCorrect) {
+                ui.card.classList.remove('correct-anim', 'wrong-anim');
+                void ui.card.offsetWidth; 
+                ui.card.classList.add('correct-anim');
             }
         }
 
         function nextQuestion() {
-            currentIndex++;
-            loadQuestion();
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
         }
 
         function endGame() {
-            ui.progressBar.style.width = `100%`;
-            ui.finalScore.innerText = Math.round(score);
-            ui.winModal.classList.remove('hidden');
+            ui.quizArea.classList.add('hidden');
+            ui.gameOver.classList.remove('hidden');
+            ui.gameOver.classList.add('flex');
+            ui.finalScore.innerText = score;
         }
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    alert(`Error: ${err.message}`);
+                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                 });
                 ui.fsIcon.classList.replace('fa-expand', 'fa-compress');
             } else {
@@ -445,7 +441,6 @@
             }
         }
 
-        // Mulai eksekusi
         initGame();
 
     </script>
