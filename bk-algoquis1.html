@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Berpikir Komputasional: Algoritma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+            background-image: radial-gradient(#bbf7d0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+
+        .sortable-list {
+            min-height: 200px;
+        }
+
+        .sortable-item {
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+        
+        .sortable-item:active {
+            cursor: grabbing;
+        }
+
+        .sortable-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background-color: #e0f2fe; /* Light blue when dragging */
+        }
+
+        .sortable-item.correct {
+            border-left: 4px solid #22c55e; /* Green border for correct */
+            background-color: #f0fdf4;
+        }
+
+        .sortable-item.incorrect {
+            border-left: 4px solid #ef4444; /* Red border for incorrect */
+            background-color: #fef2f2;
+        }
+
+        /* Confetti animation for perfect score */
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); }
+            100% { transform: translateY(100vh) rotate(360deg); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #fcd34d;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        .number-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: bold;
+            font-size: 0.875rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col relative overflow-x-hidden">
+
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 py-4 px-6 mb-8">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2 rounded-lg">
+                    <i class="fa-solid fa-code-branch fa-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-800 leading-tight">Game Algoritma</h1>
+                    <p class="text-xs text-slate-500 font-medium">Berpikir Komputasional</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-50 text-blue-700 px-4 py-2 rounded-full font-bold flex items-center gap-2 border border-blue-100 hidden" id="scoreDisplay">
+                    <i class="fa-solid fa-star text-yellow-400"></i>
+                    <span id="currentScore">0</span> / 100 Poin
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center px-4 w-full max-w-3xl mx-auto mb-12">
+        
+        <!-- Screen 1: Start Screen -->
+        <div id="startScreen" class="glass-panel w-full rounded-2xl p-8 md:p-12 text-center shadow-xl transform transition-all">
+            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-600">
+                <i class="fa-solid fa-brain text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold mb-4 text-slate-800">Tantangan Algoritma Sehari-hari</h2>
+            <p class="text-slate-600 mb-8 text-lg max-w-xl mx-auto leading-relaxed">
+                Algoritma adalah urutan langkah-langkah logis untuk menyelesaikan suatu masalah. 
+                Dalam game ini, kamu harus menyusun langkah-langkah aktivitas sehari-hari menjadi urutan algoritma yang benar!
+            </p>
+            
+            <div class="bg-blue-50 rounded-xl p-4 mb-8 text-left text-sm text-blue-800 border border-blue-100 flex gap-4 max-w-lg mx-auto">
+                <i class="fa-solid fa-circle-info text-blue-500 mt-1"></i>
+                <div>
+                    <h4 class="font-bold mb-1">Cara Bermain:</h4>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>Ada 10 soal cerita kejadian sehari-hari.</li>
+                        <li>Tarik dan lepas (Drag & Drop) kotak langkah-langkah ke urutan yang benar dari atas ke bawah.</li>
+                        <li>Setiap jawaban benar bernilai 10 poin.</li>
+                        <li>Total poin sempurna adalah 100.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="max-w-xs mx-auto mb-6">
+                <input type="text" id="playerNameInput" placeholder="Masukkan Nama Kamu..." class="w-full px-5 py-3 rounded-xl border-2 border-blue-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-center font-semibold text-slate-700 placeholder-slate-400 transition-all shadow-sm">
+                <p id="nameWarning" class="text-red-500 text-sm mt-2 hidden font-medium"><i class="fa-solid fa-circle-exclamation"></i> Nama harus diisi dulu ya!</p>
+            </div>
+
+            <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg flex items-center gap-2 mx-auto">
+                <i class="fa-solid fa-play"></i> Mulai Bermain
+            </button>
+        </div>
+
+        <!-- Screen 2: Game Screen -->
+        <div id="gameScreen" class="w-full hidden flex-col gap-6 relative">
+            
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-2 shadow-inner overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out" style="width: 10%"></div>
+            </div>
+            
+            <div class="flex justify-between text-sm font-bold text-slate-500 mb-2">
+                <span id="questionCounter">Soal 1 dari 10</span>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-panel w-full rounded-2xl p-6 shadow-lg border-t-4 border-t-blue-500">
+                <h3 id="questionTitle" class="text-xl font-bold mb-2 text-blue-800 border-b pb-3"></h3>
+                <p id="questionContext" class="text-slate-600 mb-6 italic text-sm bg-slate-50 p-3 rounded-lg border"></p>
+                
+                <p class="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-up-down text-blue-500"></i> Urutkan langkah-langkah di bawah ini:
+                </p>
+
+                <!-- Sortable List Container -->
+                <div id="sortableList" class="sortable-list flex flex-col gap-3">
+                    <!-- List items will be generated here by JS -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between mt-4">
+                <button id="checkBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Cek Jawaban
+                </button>
+                <button id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-all flex items-center gap-2 hidden">
+                    Lanjut <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="feedbackMessage" class="hidden p-4 rounded-xl mt-4 font-bold text-center animate-bounce shadow-md">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+
+        <!-- Screen 3: Result Screen -->
+        <div id="resultScreen" class="glass-panel w-full rounded-2xl p-8 md:p-12 text-center shadow-xl hidden">
+            <div id="resultIcon" class="w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl shadow-inner">
+                <!-- Icon injected by JS -->
+            </div>
+            
+            <h2 id="resultTitle" class="text-3xl font-extrabold mb-2 text-slate-800"></h2>
+            <p id="resultMessage" class="text-slate-600 mb-6 text-lg"></p>
+            
+            <div class="bg-slate-50 rounded-2xl p-8 mb-8 border-2 border-dashed border-slate-200">
+                <p class="text-slate-500 font-semibold mb-2 uppercase tracking-wide"><span id="resultPlayerName" class="text-slate-800 font-bold">Pemain</span>, Total Skor Kamu</p>
+                <div class="text-6xl font-black text-blue-600 flex justify-center items-baseline gap-2">
+                    <span id="finalScore">0</span><span class="text-2xl text-slate-400">/100</span>
+                </div>
+            </div>
+
+            <button id="restartBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all flex items-center gap-2 mx-auto">
+                <i class="fa-solid fa-rotate-right"></i> Main Lagi
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none hidden z-50 overflow-hidden"></div>
+
+    <script>
+        // --- Game Data: 10 Questions about daily algorithms ---
+        const questionsData = [
+            {
+                title: "1. Membuat Secangkir Teh Manis Panas",
+                context: "Kamu ingin membuat teh manis panas di pagi hari. Bagaimana urutan langkah yang benar?",
+                correctOrder: [
+                    "Rebus air hingga mendidih menggunakan panci atau pemanas air.",
+                    "Siapkan gelas, masukkan teh celup dan gula secukupnya ke dalam gelas.",
+                    "Tuangkan air panas yang sudah mendidih ke dalam gelas.",
+                    "Aduk perlahan menggunakan sendok hingga gula larut dan warna air berubah.",
+                    "Teh manis panas siap untuk dinikmati."
+                ]
+            },
+            {
+                title: "2. Mencuci Pakaian dengan Mesin Cuci",
+                context: "Tumpukan baju kotormu sudah banyak. Urutkan langkah menggunakan mesin cuci di bawah ini.",
+                correctOrder: [
+                    "Pisahkan pakaian berdasarkan warna (putih dan berwarna).",
+                    "Masukkan pakaian kotor ke dalam tabung mesin cuci.",
+                    "Tambahkan deterjen cuci sesuai dengan takaran.",
+                    "Pilih mode pencucian pada panel mesin cuci lalu tekan tombol Start.",
+                    "Tunggu proses pencucian selesai, lalu keluarkan pakaian untuk dijemur."
+                ]
+            },
+            {
+                title: "3. Memasak Nasi Menggunakan Rice Cooker",
+                context: "Ibu memintamu memasak nasi untuk makan malam. Bagaimana urutannya?",
+                correctOrder: [
+                    "Ambil beras secukupnya menggunakan gelas takar.",
+                    "Cuci beras dengan air bersih (biasanya 2-3 kali bilasan).",
+                    "Masukkan beras yang sudah dicuci ke dalam panci rice cooker.",
+                    "Tambahkan air bersih dengan takaran yang pas (biasanya setinggi satu ruas jari dari permukaan beras).",
+                    "Tutup rice cooker, colokkan ke listrik, dan tekan tombol 'Cook'."
+                ]
+            },
+            {
+                title: "4. Mengatur Alarm di Smartphone",
+                context: "Besok kamu harus bangun pagi jam 05:00. Urutkan langkah menyetel alarm ini.",
+                correctOrder: [
+                    "Buka kunci (unlock) layar smartphone kamu.",
+                    "Cari dan buka aplikasi 'Jam' atau 'Alarm'.",
+                    "Tekan tombol tambah (+) untuk membuat jadwal alarm baru.",
+                    "Atur waktu (jam dan menit) menjadi pukul 05:00.",
+                    "Tekan tombol 'Simpan' atau 'Save' lalu pastikan alarm dalam keadaan aktif (ON)."
+                ]
+            },
+            {
+                title: "5. Memesan Ojek Online",
+                context: "Kamu ingin pergi ke sekolah menggunakan ojek online. Susun algoritmanya.",
+                correctOrder: [
+                    "Buka aplikasi penyedia layanan transportasi online di smartphone.",
+                    "Pilih layanan motor/ride.",
+                    "Masukkan alamat atau titik lokasi tujuan dengan benar.",
+                    "Pastikan titik jemput (lokasimu saat ini) sudah sesuai.",
+                    "Pilih metode pembayaran lalu tekan tombol 'Pesan' atau 'Order'."
+                ]
+            },
+            {
+                title: "6. Menyalakan Komputer/PC",
+                context: "Urutkan langkah-langkah menyalakan komputer yang benar sebelum mulai belajar.",
+                correctOrder: [
+                    "Pastikan kabel power komputer dan monitor sudah terhubung ke stop kontak listrik.",
+                    "Tekan tombol Power pada CPU/Casing komputer.",
+                    "Tekan tombol Power pada Monitor agar layar menyala.",
+                    "Tunggu proses booting sistem operasi selesai (layar loading).",
+                    "Komputer masuk ke tampilan Desktop dan siap digunakan."
+                ]
+            },
+            {
+                title: "7. Mengambil Uang di Mesin ATM",
+                context: "Kamu perlu uang tunai dan pergi ke ATM. Urutkan langkah-langkahnya.",
+                correctOrder: [
+                    "Masukkan kartu ATM ke dalam slot mesin dengan posisi yang benar.",
+                    "Pilih bahasa pengantar (misalnya: Bahasa Indonesia).",
+                    "Ketikkan 6 digit nomor PIN ATM dengan hati-hati lalu tekan 'Benar'.",
+                    "Pilih menu 'Tarik Tunai' dan pilih nominal uang yang ingin diambil.",
+                    "Ambil uang yang keluar dari mesin, ambil kartu ATM, dan ambil struk bukti transaksi."
+                ]
+            },
+            {
+                title: "8. Mengirim Pesan Email",
+                context: "Kamu harus mengirimkan tugas kepada gurumu melalui Email. Bagaimana algoritmanya?",
+                correctOrder: [
+                    "Buka aplikasi email (seperti Gmail) atau akses melalui browser web.",
+                    "Klik tombol 'Tulis' (Compose) untuk membuat email baru.",
+                    "Ketikkan alamat email tujuan (email guru) pada kolom 'Kepada' (To).",
+                    "Isi kolom 'Subjek' dan tuliskan pesan pengantar pada bagian isi (body) email.",
+                    "Lampirkan file tugas jika ada (Attach file), lalu klik tombol 'Kirim' (Send)."
+                ]
+            },
+            {
+                title: "9. Mencuci Piring Kotor",
+                context: "Setelah makan, kamu bertugas mencuci piring. Urutkan langkah mencuci piring yang higienis.",
+                correctOrder: [
+                    "Buang sisa makanan yang ada di piring ke tempat sampah.",
+                    "Basahi spons dan tuangkan sabun cuci piring secukupnya pada spons.",
+                    "Gosok seluruh permukaan piring menggunakan spons bersabun hingga bersih dari minyak.",
+                    "Bilas piring di bawah air mengalir hingga tidak ada sisa sabun yang menempel.",
+                    "Tiriskan atau letakkan piring di rak piring agar kering."
+                ]
+            },
+            {
+                title: "10. Memilah dan Membuang Sampah",
+                context: "Program sekolah adiwiyata mengharuskan pemilahan sampah. Urutkan langkahnya.",
+                correctOrder: [
+                    "Kumpulkan semua sampah yang berserakan ke dalam satu wadah sementara.",
+                    "Identifikasi jenis sampah (apakah itu sisa makanan, plastik, atau kertas).",
+                    "Pisahkan sampah organik (sisa makanan/daun) dari sampah anorganik (plastik/kaleng).",
+                    "Buang sampah organik ke tempat sampah berwarna hijau (Compost).",
+                    "Buang sampah anorganik ke tempat sampah berwarna kuning (Recycle)."
+                ]
+            }
+        ];
+
+        // --- Game State Variables ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let draggedItem = null;
+        let currentJumbledItems = [];
+        let isAnswerChecked = false;
+        let playerName = "";
+
+        // --- DOM Elements ---
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const startBtn = document.getElementById('startBtn');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const nameWarning = document.getElementById('nameWarning');
+        const sortableList = document.getElementById('sortableList');
+        const questionTitle = document.getElementById('questionTitle');
+        const questionContext = document.getElementById('questionContext');
+        const checkBtn = document.getElementById('checkBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const progressBar = document.getElementById('progressBar');
+        const questionCounter = document.getElementById('questionCounter');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const currentScoreSpan = document.getElementById('currentScore');
+        
+        // Result elements
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        const resultPlayerName = document.getElementById('resultPlayerName');
+        const finalScore = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        const confettiContainer = document.getElementById('confettiContainer');
+
+        // --- Utility: Shuffle Array ---
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            
+            // While there remain elements to shuffle.
+            while (currentIndex != 0) {
+                // Pick a remaining element.
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                
+                // And swap it with the current element.
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        // --- STREAMING_CHUNK:Implementing Drag and Drop functionality ---
+        
+        function initDragAndDrop() {
+            const items = sortableList.querySelectorAll('.sortable-item');
+            
+            items.forEach(item => {
+                // Drag start
+                item.addEventListener('dragstart', () => {
+                    if (isAnswerChecked) return; // Disable drag if already checked
+                    draggedItem = item;
+                    setTimeout(() => item.classList.add('dragging'), 0);
+                });
+                
+                // Drag end
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    draggedItem = null;
+                    updateItemNumbers();
+                });
+            });
+
+            // Container drag over
+            sortableList.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (isAnswerChecked || !draggedItem) return;
+                
+                const afterElement = getDragAfterElement(sortableList, e.clientY);
+                if (afterElement == null) {
+                    sortableList.appendChild(draggedItem);
+                } else {
+                    sortableList.insertBefore(draggedItem, afterElement);
+                }
+            });
+            
+            // Touch support (Mobile)
+            let touchOffsetY = 0;
+            let placeholder = null;
+
+            items.forEach(item => {
+                item.addEventListener('touchstart', (e) => {
+                    if (isAnswerChecked) return;
+                    
+                    const touch = e.touches[0];
+                    const rect = item.getBoundingClientRect();
+                    touchOffsetY = touch.clientY - rect.top;
+                    
+                    // Create placeholder to maintain space
+                    placeholder = document.createElement('div');
+                    placeholder.className = 'bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg h-[70px] mb-3';
+                    
+                    draggedItem = item;
+                    
+                    // Delay slightly to differentiate click vs drag
+                    setTimeout(() => {
+                        if (draggedItem === item) {
+                            item.classList.add('dragging');
+                            item.style.position = 'fixed';
+                            item.style.width = `${rect.width}px`;
+                            item.style.zIndex = '1000';
+                            
+                            // Insert placeholder
+                            sortableList.insertBefore(placeholder, item.nextSibling);
+                            
+                            moveItem(touch.clientX, touch.clientY);
+                            
+                            // Prevent scrolling while dragging
+                            document.body.style.overflow = 'hidden';
+                        }
+                    }, 100);
+                }, {passive: false});
+
+                item.addEventListener('touchmove', (e) => {
+                    if (!draggedItem || draggedItem !== item) return;
+                    e.preventDefault(); // Stop scrolling
+                    
+                    const touch = e.touches[0];
+                    moveItem(touch.clientX, touch.clientY);
+                    
+                    // Find element we are dragging over
+                    const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+                    let targetItem = null;
+                    
+                    for (let el of elements) {
+                        if (el.classList.contains('sortable-item') && el !== draggedItem) {
+                            targetItem = el;
+                            break;
+                        }
+                    }
+                    
+                    if (targetItem) {
+                        const targetRect = targetItem.getBoundingClientRect();
+                        const targetMiddle = targetRect.top + targetRect.height / 2;
+                        
+                        if (touch.clientY < targetMiddle) {
+                            sortableList.insertBefore(placeholder, targetItem);
+                        } else {
+                            sortableList.insertBefore(placeholder, targetItem.nextSibling);
+                        }
+                    }
+                }, {passive: false});
+
+                item.addEventListener('touchend', () => {
+                    if (!draggedItem) return;
+                    
+                    draggedItem.classList.remove('dragging');
+                    draggedItem.style.position = '';
+                    draggedItem.style.width = '';
+                    draggedItem.style.zIndex = '';
+                    draggedItem.style.top = '';
+                    draggedItem.style.left = '';
+                    
+                    if (placeholder && placeholder.parentNode) {
+                        sortableList.insertBefore(draggedItem, placeholder);
+                        placeholder.remove();
+                    }
+                    
+                    draggedItem = null;
+                    document.body.style.overflow = '';
+                    updateItemNumbers();
+                });
+            });
+            
+            function moveItem(x, y) {
+                if (draggedItem) {
+                    draggedItem.style.left = `${x - 20}px`; // center slightly
+                    draggedItem.style.top = `${y - touchOffsetY}px`;
+                }
+            }
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.sortable-item:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // Helper to update the numbers on the left of list items after dragging
+        function updateItemNumbers() {
+            const items = sortableList.querySelectorAll('.number-badge');
+            items.forEach((badge, index) => {
+                badge.innerText = index + 1;
+            });
+        }
+
+        // --- STREAMING_CHUNK:Game Flow Functions (Load, Check, Next) ---
+
+        function loadQuestion(index) {
+            const question = questionsData[index];
+            questionTitle.innerText = question.title;
+            questionContext.innerText = question.context;
+            
+            // Update UI trackers
+            questionCounter.innerText = `Soal ${index + 1} dari ${questionsData.length}`;
+            progressBar.style.width = `${((index) / questionsData.length) * 100}%`;
+            
+            // Reset state
+            isAnswerChecked = false;
+            checkBtn.classList.remove('hidden');
+            nextBtn.classList.add('hidden');
+            feedbackMessage.classList.add('hidden');
+            sortableList.innerHTML = '';
+            
+            // Prepare jumbled items
+            // Create an array of objects to keep track of original text for checking
+            let itemsWithOriginalId = question.correctOrder.map((text, i) => ({ id: i, text: text }));
+            
+            // Shuffle
+            currentJumbledItems = shuffleArray([...itemsWithOriginalId]);
+            
+            // Ensure the jumbled array is not exactly the same as correct order by chance
+            let isSame = currentJumbledItems.every((item, i) => item.id === i);
+            if(isSame && currentJumbledItems.length > 1) {
+                 // swap first two to guarantee jumbled
+                 [currentJumbledItems[0], currentJumbledItems[1]] = [currentJumbledItems[1], currentJumbledItems[0]];
+            }
+
+            // Render list
+            currentJumbledItems.forEach((item, idx) => {
+                const li = document.createElement('div');
+                li.className = 'sortable-item bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center select-none group hover:border-blue-300';
+                li.draggable = true;
+                li.dataset.originalId = item.id;
+                
+                li.innerHTML = `
+                    <div class="number-badge">${idx + 1}</div>
+                    <div class="flex-grow text-slate-700 font-medium text-sm md:text-base leading-snug pr-2">
+                        ${item.text}
+                    </div>
+                    <div class="text-slate-300 group-hover:text-blue-400 cursor-grab px-2">
+                        <i class="fa-solid fa-grip-vertical text-xl"></i>
+                    </div>
+                `;
+                sortableList.appendChild(li);
+            });
+
+            initDragAndDrop();
+        }
+
+        function checkAnswer() {
+            if (isAnswerChecked) return;
+            isAnswerChecked = true;
+
+            const items = sortableList.querySelectorAll('.sortable-item');
+            let allCorrect = true;
+
+            // Visual feedback loop
+            items.forEach((item, index) => {
+                const originalId = parseInt(item.dataset.originalId);
+                const gripIcon = item.querySelector('.fa-grip-vertical');
+                
+                // Disable drag look
+                item.draggable = false;
+                item.classList.remove('cursor-grab', 'hover:border-blue-300');
+                if(gripIcon) gripIcon.parentNode.innerHTML = ''; // remove grip icon
+
+                if (originalId === index) {
+                    item.classList.add('correct');
+                    // Add check icon
+                    const iconWrap = document.createElement('div');
+                    iconWrap.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 text-xl"></i>';
+                    item.appendChild(iconWrap);
+                } else {
+                    item.classList.add('incorrect');
+                    allCorrect = false;
+                    // Add X icon
+                    const iconWrap = document.createElement('div');
+                    iconWrap.innerHTML = '<i class="fa-solid fa-times-circle text-red-500 text-xl"></i>';
+                    item.appendChild(iconWrap);
+                }
+            });
+
+            // Scoring and Feedback text
+            feedbackMessage.classList.remove('hidden');
+            if (allCorrect) {
+                score += 10;
+                currentScoreSpan.innerText = score;
+                
+                feedbackMessage.className = 'p-4 rounded-xl mt-4 font-bold text-center shadow-md bg-green-100 text-green-700 border border-green-200 animate-pulse';
+                feedbackMessage.innerHTML = '<i class="fa-solid fa-star text-yellow-500"></i> Hebat! Urutan Algoritma Benar (+10 Poin)';
+            } else {
+                feedbackMessage.className = 'p-4 rounded-xl mt-4 font-bold text-center shadow-md bg-red-50 text-red-600 border border-red-200';
+                feedbackMessage.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Yah, urutannya masih ada yang salah. Coba perhatikan lagi logikanya.';
+                
+                // Show Correct order logically visually if wrong? 
+                // For simplicity, we just mark which ones are in wrong positions.
+            }
+
+            // Toggle buttons
+            checkBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            
+            // If it's the last question, change Next button text
+            if (currentQuestionIndex === questionsData.length - 1) {
+                nextBtn.innerHTML = 'Lihat Hasil Akhir <i class="fa-solid fa-flag-checkered"></i>';
+                nextBtn.classList.replace('bg-blue-600', 'bg-purple-600');
+                nextBtn.classList.replace('hover:bg-blue-700', 'hover:bg-purple-700');
+            }
+        }
+
+        // --- STREAMING_CHUNK:Result Screen and Confetti Generation ---
+
+        function showResult() {
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            progressBar.style.width = '100%';
+            scoreDisplay.classList.add('hidden');
+
+            resultPlayerName.innerText = playerName;
+
+            // Animate score counter
+            let startScore = 0;
+            const duration = 1500;
+            const stepTime = Math.abs(Math.floor(duration / (score || 1)));
+            
+            const timer = setInterval(() => {
+                if (startScore >= score) {
+                    clearInterval(timer);
+                    finalScore.innerText = score;
+                } else {
+                    startScore += 1;
+                    finalScore.innerText = startScore;
+                }
+            }, stepTime);
+
+            // Determine feedback based on score
+            resultIcon.className = 'w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-6 text-5xl shadow-inner text-white';
+            
+            if (score === 100) {
+                resultIcon.classList.add('bg-gradient-to-br', 'from-yellow-400', 'to-yellow-600');
+                resultIcon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                resultTitle.innerText = `Sempurna, ${playerName}!`;
+                resultMessage.innerText = "Luar biasa! Pemahamanmu tentang computational thinking dan logika algoritma sangat kuat.";
+                triggerConfetti();
+            } else if (score >= 70) {
+                resultIcon.classList.add('bg-gradient-to-br', 'from-blue-400', 'to-blue-600');
+                resultIcon.innerHTML = '<i class="fa-solid fa-medal"></i>';
+                resultTitle.innerText = `Bagus Sekali, ${playerName}!`;
+                resultMessage.innerText = "Logikamu sudah jalan dengan baik. Sedikit lagi menuju sempurna!";
+            } else if (score >= 40) {
+                resultIcon.classList.add('bg-gradient-to-br', 'from-orange-400', 'to-orange-600');
+                resultIcon.innerHTML = '<i class="fa-solid fa-thumbs-up"></i>';
+                resultTitle.innerText = `Cukup Baik, ${playerName}!`;
+                resultMessage.innerText = "Terus berlatih ya, perhatikan detail urutan agar lebih logis.";
+            } else {
+                resultIcon.classList.add('bg-gradient-to-br', 'from-slate-400', 'to-slate-600');
+                resultIcon.innerHTML = '<i class="fa-solid fa-book-open"></i>';
+                resultTitle.innerText = `Jangan Menyerah, ${playerName}!`;
+                resultMessage.innerText = "Algoritma itu seperti resep masakan, jika urutannya salah, hasilnya berantakan. Ayo coba lagi!";
+            }
+        }
+
+        function triggerConfetti() {
+            confettiContainer.classList.remove('hidden');
+            confettiContainer.innerHTML = '';
+            const colors = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#a855f7'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                confetti.style.animationDelay = (Math.random() * 2) + 's';
+                confettiContainer.appendChild(confetti);
+            }
+        }
+
+        // --- Event Listeners Setup ---
+        
+        startBtn.addEventListener('click', () => {
+            const nameValue = playerNameInput.value.trim();
+            if (!nameValue) {
+                nameWarning.classList.remove('hidden');
+                playerNameInput.classList.add('border-red-400', 'ring-4', 'ring-red-100');
+                playerNameInput.classList.remove('border-blue-200', 'focus:ring-blue-100');
+                playerNameInput.focus();
+                return;
+            }
+            
+            // Clear warning if name is filled
+            nameWarning.classList.add('hidden');
+            playerNameInput.classList.remove('border-red-400', 'ring-4', 'ring-red-100');
+            playerNameInput.classList.add('border-blue-200');
+            playerName = nameValue;
+
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            gameScreen.classList.add('flex');
+            scoreDisplay.classList.remove('hidden');
+            
+            // Reset game state
+            currentQuestionIndex = 0;
+            score = 0;
+            currentScoreSpan.innerText = score;
+            
+            loadQuestion(currentQuestionIndex);
+        });
+
+        checkBtn.addEventListener('click', checkAnswer);
+
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questionsData.length) {
+                loadQuestion(currentQuestionIndex);
+            } else {
+                showResult();
+            }
+        });
+
+        restartBtn.addEventListener('click', () => {
+            resultScreen.classList.add('hidden');
+            confettiContainer.classList.add('hidden');
+            confettiContainer.innerHTML = '';
+            
+            startScreen.classList.remove('hidden');
+            nextBtn.innerHTML = 'Lanjut <i class="fa-solid fa-arrow-right"></i>';
+            nextBtn.classList.replace('bg-purple-600', 'bg-blue-600');
+            nextBtn.classList.replace('hover:bg-purple-700', 'hover:bg-blue-700');
+        });
+
+    </script>
+</body>
+</html>
