@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Biner & Desimal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #1e293b;
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23334155" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1, h2, h3, .title-font {
+            font-family: 'Fredoka One', cursive;
+        }
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        .screen.active {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .shake {
+            animation: shake 0.4s;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+            100% { transform: translateX(0); }
+        }
+        .float-anim {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* --- ANIMASI PANAH DAN EFEK MONSTER --- */
+        @keyframes shootArrow {
+            0% { transform: translate(-50%, 0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; transform: translate(-50%, -20px) scale(1); }
+            100% { transform: translate(-50%, -220px) scale(1.2); opacity: 0; }
+        }
+        .anim-shoot {
+            animation: shootArrow 0.3s ease-in forwards;
+        }
+        
+        @keyframes monsterTumbang {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(0.2) rotate(15deg) translateY(100px); opacity: 0; }
+        }
+        .anim-tumbang {
+            animation: monsterTumbang 0.5s ease-in forwards !important;
+        }
+        
+        @keyframes shieldBlock {
+            0% { transform: translateX(0); filter: drop-shadow(0 0 0px transparent); }
+            20% { transform: translateX(-8px); filter: drop-shadow(0 0 15px rgba(239,68,68,0.8)); }
+            40% { transform: translateX(8px); filter: drop-shadow(0 0 15px rgba(239,68,68,0.8)); }
+            60% { transform: translateX(-8px); filter: drop-shadow(0 0 15px rgba(239,68,68,0.8)); }
+            80% { transform: translateX(8px); filter: drop-shadow(0 0 15px rgba(239,68,68,0.8)); }
+            100% { transform: translateX(0); filter: drop-shadow(0 0 0px transparent); }
+        }
+        .anim-kebal {
+            animation: shieldBlock 0.5s ease-out;
+        }
+
+        /* --- STYLING KARAKTER MONSTER (DARI USER) --- */
+        .character-container {
+            position: relative;
+            animation: jump 0.6s infinite alternate ease-in-out;
+            margin: 10px auto 30px auto;
+            width: 140px;
+        }
+
+        .monster-body {
+            width: 140px;
+            height: 140px;
+            background-color: #ff6b6b;
+            border-radius: 50% 50% 45% 45%;
+            position: relative;
+            box-shadow: inset -10px -10px 0px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .monster-eyes {
+            position: absolute;
+            top: 55px;
+            display: flex;
+            gap: 24px;
+        }
+
+        .monster-eye {
+            width: 24px;
+            height: 24px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 3s infinite;
+        }
+
+        .monster-eye::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #2d3436;
+            border-radius: 50%;
+            top: 6px;
+            left: 6px;
+        }
+
+        .monster-mouth {
+            width: 36px;
+            height: 18px;
+            background-color: #2d3436;
+            border-radius: 0 0 18px 18px;
+            position: absolute;
+            top: 90px;
+        }
+
+        .monster-shadow {
+            width: 120px;
+            height: 12px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            position: absolute;
+            bottom: -20px;
+            left: 10px;
+            animation: shadow-scale 0.6s infinite alternate ease-in-out;
+        }
+
+        @keyframes jump {
+            0% { transform: translateY(0) scaleY(1); }
+            100% { transform: translateY(-40px) scaleY(1.05); }
+        }
+
+        @keyframes blink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        @keyframes shadow-scale {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.6); opacity: 0.4; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 w-full p-4">
+
+    <!-- Container Utama -->
+    <div class="w-full max-w-md mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
+        
+        <!-- ================= SCREEN 1: LOGIN ================= -->
+        <div id="screen-login" class="screen active flex-col items-center justify-center p-8 h-full flex-grow">
+            <div class="w-24 h-24 bg-indigo-500 rounded-full flex items-center justify-center mb-6 float-anim shadow-lg shadow-indigo-200">
+                <i class="fas fa-gamepad text-5xl text-white"></i>
+            </div>
+            <h1 class="text-3xl md:text-4xl text-center text-indigo-900 mb-2">Petualangan</h1>
+            <h2 class="text-2xl text-center text-indigo-600 mb-8">Biner & Desimal</h2>
+            
+            <p class="text-center text-slate-500 mb-6 font-semibold">Siapakah nama pahlawan kita?</p>
+            
+            <input type="text" id="player-name" placeholder="Masukkan namamu..." class="w-full px-5 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none text-lg text-center font-bold mb-6 transition-all" autocomplete="off">
+            
+            <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl title-font text-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                Mulai Petualangan <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+        <!-- ================= SCREEN 2: MAIN MENU ================= -->
+        <div id="screen-menu" class="screen flex-col p-8 h-full flex-grow">
+            <div class="text-center mb-8">
+                <p class="text-slate-500 font-bold mb-1">Selamat datang, Kesatria</p>
+                <h2 id="display-name" class="text-3xl text-indigo-900 truncate">Nama</h2>
+            </div>
+
+            <p class="text-center text-slate-600 mb-6">Pilih jalur petualanganmu hari ini:</p>
+
+            <div class="space-y-4">
+                <button onclick="selectPath('bin2dec')" class="w-full relative overflow-hidden group bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-500 rounded-2xl p-4 flex items-center transition-all transform hover:-translate-y-1 hover:shadow-lg">
+                    <div class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl shadow-md z-10">
+                        <i class="fas fa-map-signs"></i>
+                    </div>
+                    <div class="ml-4 text-left z-10">
+                        <h3 class="text-xl text-emerald-800 title-font">Hutan Biner</h3>
+                        <p class="text-sm text-emerald-600 font-semibold">Ubah Biner -> Desimal</p>
+                    </div>
+                    <div class="absolute right-[-20px] top-1/2 transform -translate-y-1/2 opacity-10 group-hover:opacity-20 transition-opacity z-0">
+                        <i class="fas fa-tree text-9xl text-emerald-700"></i>
+                    </div>
+                </button>
+
+                <button onclick="selectPath('dec2bin')" class="w-full relative overflow-hidden group bg-orange-50 hover:bg-orange-100 border-2 border-orange-500 rounded-2xl p-4 flex items-center transition-all transform hover:-translate-y-1 hover:shadow-lg">
+                    <div class="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center text-xl shadow-md z-10">
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="ml-4 text-left z-10">
+                        <h3 class="text-xl text-orange-800 title-font">Gunung Desimal</h3>
+                        <p class="text-sm text-orange-600 font-semibold">Ubah Desimal -> Biner</p>
+                    </div>
+                    <div class="absolute right-[-20px] top-1/2 transform -translate-y-1/2 opacity-10 group-hover:opacity-20 transition-opacity z-0">
+                        <i class="fas fa-fire text-9xl text-orange-700"></i>
+                    </div>
+                </button>
+            </div>
+            
+            <button onclick="goBack('screen-menu', 'screen-login')" class="mt-auto pt-6 text-slate-400 hover:text-slate-600 font-semibold text-center w-full">
+                <i class="fas fa-sign-out-alt mr-1"></i> Ganti Pemain
+            </button>
+        </div>
+
+        <!-- ================= SCREEN 3: GAMEPLAY ================= -->
+        <div id="screen-game" class="screen flex-col h-full flex-grow relative">
+            
+            <!-- Header Status -->
+            <div id="game-header" class="bg-indigo-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative shrink-0">
+                <div>
+                    <p class="text-xs text-indigo-200 font-bold uppercase tracking-wider">Perjalanan</p>
+                    <p class="title-font text-xl"><span id="current-stage">1</span> / 10</p>
+                </div>
+                <div class="text-center absolute left-1/2 transform -translate-x-1/2">
+                    <i id="mode-icon" class="fas fa-dragon text-2xl text-indigo-300"></i>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-indigo-200 font-bold uppercase tracking-wider">Skor</p>
+                    <p class="title-font text-xl text-yellow-300" id="current-score">0</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 h-2 shrink-0">
+                <div id="progress-bar" class="bg-gradient-to-r from-yellow-400 to-yellow-500 h-2 transition-all duration-500" style="width: 10%;"></div>
+            </div>
+
+            <!-- Game Area -->
+            <div class="flex-grow flex flex-col items-center justify-between p-6 relative bg-slate-50/50">
+                
+                <!-- Info Soal -->
+                <div class="w-full text-center z-10">
+                    <p id="question-narrative" class="text-slate-500 font-semibold text-sm">Sebuah monster angka menghadang!</p>
+                    <p class="text-base font-bold text-indigo-600" id="question-label">Ubah Biner ke Desimal:</p>
+                </div>
+
+                <!-- Monster Character Element -->
+                <div id="monster-wrapper" class="z-10 transition-all duration-300 my-auto">
+                    <div class="character-container">
+                        <div class="monster-body">
+                            <!-- Nomor soal diletakkan di dahi monster -->
+                            <h2 id="question-text" class="text-3xl title-font text-slate-900 tracking-widest mt-2 drop-shadow-md">1010</h2>
+                            
+                            <div class="monster-eyes">
+                                <div class="monster-eye"></div>
+                                <div class="monster-eye"></div>
+                            </div>
+                            <div class="monster-mouth"></div>
+                        </div>
+                        <div class="monster-shadow"></div>
+                    </div>
+                </div>
+
+                <!-- Efek Panah (Tersembunyi secara default) -->
+                <div id="arrow-projectile" class="absolute bottom-[130px] left-1/2 hidden z-20 pointer-events-none" style="transform: translateX(-50%);">
+                    <i class="fas fa-arrow-up text-6xl text-indigo-600 filter drop-shadow-[0_0_8px_rgba(79,70,229,0.6)]"></i>
+                </div>
+
+                <!-- Input & Button -->
+                <div class="w-full relative z-30 mt-auto shrink-0">
+                    <p id="attempts-left" class="text-center text-red-500 font-bold mb-2 hidden">Kesempatan tersisa: 3</p>
+                    <input type="text" id="answer-input" placeholder="Jawabanmu..." class="w-full px-5 py-4 rounded-xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none text-2xl text-center font-bold mb-4 font-mono shadow-sm bg-white" autocomplete="off">
+                    
+                    <button id="btn-serang" onclick="checkAnswer()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl title-font text-xl shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-crosshairs"></i> Serang!
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Feedback Overlay (MEMPERBAIKI BUG Z-INDEX DAN POSISI) -->
+            <!-- Ditempatkan di dalam screen-game tapi dengan posisi absolute memenuhi container -->
+            <div id="feedback-overlay" class="absolute inset-0 h-full w-full bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center hidden">
+                <div id="feedback-icon" class="text-7xl mb-4 text-emerald-500 bounce">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 id="feedback-title" class="text-3xl title-font text-slate-800 mb-2 text-center px-4">Serangan Berhasil!</h2>
+                <p id="feedback-desc" class="text-lg text-slate-600 font-semibold text-center px-6 mb-8">Kamu telah mengalahkan monster angka.</p>
+                <button id="btn-next" onclick="nextStage()" class="px-8 py-3 bg-slate-800 text-white rounded-full font-bold shadow-lg hover:bg-slate-700 transition hidden">
+                    Lanjut Perjalanan <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 4: RESULT ================= -->
+        <div id="screen-result" class="screen flex-col items-center justify-center p-8 h-full flex-grow bg-gradient-to-b from-indigo-900 to-slate-900">
+            <div class="w-full text-center mb-8 relative z-10">
+                <i class="fas fa-trophy text-7xl text-yellow-400 mb-4 float-anim drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"></i>
+                <h1 class="text-3xl title-font text-white mb-2">Petualangan Selesai!</h1>
+                <p id="result-message" class="text-indigo-200 font-semibold">Luar biasa, Kesatria <span id="final-name" class="text-white">Nama</span>!</p>
+            </div>
+
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 w-full text-center shadow-xl mb-8 z-10">
+                <p class="text-indigo-200 font-semibold text-sm uppercase tracking-wider mb-1">Skor Akhir</p>
+                <p id="final-score" class="text-5xl title-font text-yellow-400 mb-4">100</p>
+                <div class="flex justify-around border-t border-white/10 pt-4">
+                    <div>
+                        <p class="text-xs text-indigo-300">Benar</p>
+                        <p id="final-correct" class="text-xl font-bold text-emerald-400">10</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-indigo-300">Salah</p>
+                        <p id="final-wrong" class="text-xl font-bold text-red-400">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 w-full z-10 mt-auto">
+                <button onclick="goHome()" class="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition">
+                    <i class="fas fa-home"></i> Menu Utama
+                </button>
+                <button onclick="playAgain()" class="flex-1 py-3 bg-gradient-to-r from-emerald-400 to-emerald-500 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-xl font-bold shadow-lg transition">
+                    <i class="fas fa-redo"></i> Main Lagi
+                </button>
+            </div>
+            
+            <!-- Confetti Effect (CSS only simple visual) -->
+            <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+                <div class="absolute top-[10%] left-[20%] text-2xl text-yellow-300 float-anim" style="animation-delay: 0.1s"><i class="fas fa-star"></i></div>
+                <div class="absolute top-[30%] left-[80%] text-2xl text-pink-300 float-anim" style="animation-delay: 0.4s"><i class="fas fa-star"></i></div>
+                <div class="absolute top-[70%] left-[15%] text-2xl text-emerald-300 float-anim" style="animation-delay: 0.2s"><i class="fas fa-star"></i></div>
+                <div class="absolute top-[60%] left-[75%] text-2xl text-blue-300 float-anim" style="animation-delay: 0.5s"><i class="fas fa-star"></i></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GAME STATE ---
+        let state = {
+            playerName: '',
+            path: '', 
+            questions: [],
+            currentStageIndex: 0,
+            score: 0,
+            correctCount: 0,
+            wrongCount: 0,
+            attempts: 0
+        };
+
+        // --- NAVIGATION LOGIC ---
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function goBack(currentId, targetId) {
+            showScreen(targetId);
+        }
+
+        function goHome() {
+            showScreen('screen-menu');
+        }
+
+        // --- GAME LOGIC ---
+        function startGame() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (nameInput === '') {
+                const inputEl = document.getElementById('player-name');
+                inputEl.classList.add('shake', 'border-red-500');
+                setTimeout(() => inputEl.classList.remove('shake', 'border-red-500'), 400);
+                return;
+            }
+            state.playerName = nameInput;
+            document.getElementById('display-name').textContent = state.playerName;
+            document.getElementById('final-name').textContent = state.playerName;
+            showScreen('screen-menu');
+        }
+
+        // Enter key for login
+        document.getElementById('player-name').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') startGame();
+        });
+
+        function selectPath(pathType) {
+            state.path = pathType;
+            state.currentStageIndex = 0;
+            state.score = 0;
+            state.correctCount = 0;
+            state.wrongCount = 0;
+            generateQuestions();
+            updateGameUI();
+            showScreen('screen-game');
+        }
+
+        function playAgain() {
+            selectPath(state.path); 
+        }
+
+        // Generate 10 unique random numbers between 1 and 100
+        function generateQuestions() {
+            state.questions = [];
+            let numberPool = new Set();
+            
+            while(numberPool.size < 10) {
+                numberPool.add(Math.floor(Math.random() * 100) + 1);
+            }
+
+            const numbers = Array.from(numberPool);
+            
+            numbers.forEach(num => {
+                if (state.path === 'bin2dec') {
+                    state.questions.push({
+                        question: num.toString(2),
+                        answer: num.toString(10), 
+                        typeText: "Biner ke Desimal",
+                        narrative: "Ubah sandi biner ini ke angka desimal!"
+                    });
+                } else {
+                    state.questions.push({
+                        question: num.toString(10), 
+                        answer: num.toString(2), 
+                        typeText: "Desimal ke Biner",
+                        narrative: "Ubah angka desimal ini menjadi biner!"
+                    });
+                }
+            });
+        }
+
+        function updateGameUI() {
+            state.attempts = 0;
+            document.getElementById('attempts-left').classList.add('hidden');
+            
+            // Kembalikan status overlay dan tombol
+            const overlay = document.getElementById('feedback-overlay');
+            overlay.classList.add('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+            
+            // Kembalikan input dan tombol serang
+            const inputEl = document.getElementById('answer-input');
+            const btnSerang = document.getElementById('btn-serang');
+            inputEl.disabled = false;
+            btnSerang.disabled = false;
+            
+            // Hapus animasi monster
+            const monsterWrapper = document.getElementById('monster-wrapper');
+            monsterWrapper.classList.remove('anim-tumbang', 'anim-kebal');
+            
+            const currentQ = state.questions[state.currentStageIndex];
+            
+            // Update Header & Progress
+            document.getElementById('current-stage').textContent = state.currentStageIndex + 1;
+            document.getElementById('current-score').textContent = state.score;
+            document.getElementById('progress-bar').style.width = `${((state.currentStageIndex + 1) / 10) * 100}%`;
+            
+            // Styling Header Berdasarkan Jalur
+            const gameHeader = document.getElementById('game-header');
+            const modeIcon = document.getElementById('mode-icon');
+            if (state.path === 'bin2dec') {
+                gameHeader.className = 'bg-emerald-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative shrink-0';
+                modeIcon.className = 'fas fa-tree text-2xl text-emerald-300';
+            } else {
+                gameHeader.className = 'bg-orange-600 text-white p-4 flex justify-between items-center shadow-md z-10 relative shrink-0';
+                modeIcon.className = 'fas fa-fire text-2xl text-orange-300';
+            }
+
+            // Update Soal
+            document.getElementById('question-narrative').textContent = currentQ.narrative;
+            document.getElementById('question-label').textContent = currentQ.typeText;
+            document.getElementById('question-text').textContent = currentQ.question;
+            
+            inputEl.value = '';
+            inputEl.focus();
+            
+            inputEl.oninput = function() {
+                if(state.path === 'dec2bin') {
+                    this.value = this.value.replace(/[^01]/g, '');
+                } else {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                }
+            };
+        }
+
+        // Enter key for answering
+        document.getElementById('answer-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const overlay = document.getElementById('feedback-overlay');
+                if(overlay.classList.contains('hidden') && !document.getElementById('answer-input').disabled) {
+                    checkAnswer();
+                } else if(!overlay.classList.contains('hidden') && !document.getElementById('btn-next').classList.contains('hidden')) {
+                    // Hanya bisa next via Enter jika tombol Lanjut muncul
+                    nextStage();
+                }
+            }
+        });
+
+        function checkAnswer() {
+            const inputEl = document.getElementById('answer-input');
+            const btnSerang = document.getElementById('btn-serang');
+            const inputVal = inputEl.value.trim();
+            if (inputVal === '') return;
+
+            const currentQ = state.questions[state.currentStageIndex];
+            const isCorrect = (inputVal === currentQ.answer);
+
+            // Kunci interaksi saat animasi
+            inputEl.disabled = true;
+            btnSerang.disabled = true;
+
+            // Animasi Panah
+            const arrow = document.getElementById('arrow-projectile');
+            arrow.classList.remove('hidden');
+            void arrow.offsetWidth; 
+            arrow.classList.add('anim-shoot');
+
+            setTimeout(() => {
+                arrow.classList.add('hidden');
+                arrow.classList.remove('anim-shoot');
+
+                const monsterWrapper = document.getElementById('monster-wrapper');
+                const overlay = document.getElementById('feedback-overlay');
+                const icon = document.getElementById('feedback-icon');
+                const title = document.getElementById('feedback-title');
+                const desc = document.getElementById('feedback-desc');
+                const btnNext = document.getElementById('btn-next');
+
+                if (isCorrect) {
+                    // JAWABAN BENAR
+                    monsterWrapper.classList.add('anim-tumbang');
+                    
+                    setTimeout(() => {
+                        state.score += 10;
+                        state.correctCount++;
+                        
+                        overlay.classList.remove('hidden');
+                        btnNext.classList.add('hidden'); // Lanjut otomatis, sembunyikan tombol
+                        
+                        icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                        icon.className = 'text-7xl mb-4 text-emerald-500 float-anim';
+                        title.textContent = 'Serangan Kritis!';
+                        title.className = 'text-3xl title-font text-emerald-600 mb-2 text-center';
+                        desc.innerHTML = `Monster Tumbang! Jawaban yang benar memang <strong>${currentQ.answer}</strong>.`;
+                        document.getElementById('current-score').textContent = state.score;
+                        
+                        // Lanjut otomatis setelah 1.5 detik
+                        setTimeout(() => {
+                            nextStage();
+                        }, 1500);
+
+                    }, 500); 
+                } else {
+                    // JAWABAN SALAH
+                    monsterWrapper.classList.add('anim-kebal');
+                    setTimeout(() => {
+                        monsterWrapper.classList.remove('anim-kebal');
+                    }, 500);
+
+                    state.attempts++;
+                    const sisa = 3 - state.attempts;
+                    
+                    if (sisa > 0) {
+                        // Masih ada kesempatan
+                        inputEl.classList.add('shake', 'border-red-500', 'text-red-500');
+                        setTimeout(() => inputEl.classList.remove('shake', 'border-red-500', 'text-red-500'), 500);
+                        inputEl.value = ''; 
+                        
+                        const attemptsEl = document.getElementById('attempts-left');
+                        attemptsEl.textContent = `Serangan ditangkis (Kebal)! Coba lagi (Sisa: ${sisa}x)`;
+                        attemptsEl.classList.remove('hidden');
+
+                        inputEl.disabled = false;
+                        btnSerang.disabled = false;
+                        inputEl.focus();
+                    } else {
+                        // Kesempatan Habis
+                        state.wrongCount++;
+                        
+                        overlay.classList.remove('hidden');
+                        btnNext.classList.remove('hidden'); // Munculkan tombol Lanjut manual
+                        
+                        icon.innerHTML = '<i class="fas fa-shield-virus"></i>';
+                        icon.className = 'text-7xl mb-4 text-red-500 shake';
+                        title.textContent = 'Serangan Gagal!';
+                        title.className = 'text-3xl title-font text-red-600 mb-2 text-center';
+                        desc.innerHTML = `Kamu 3 kali gagal menembus pertahanan!<br>Jawaban yang benar adalah <strong>${currentQ.answer}</strong>.`;
+                    }
+                }
+            }, 300); // Waktu panah melesat
+        }
+
+        function nextStage() {
+            state.currentStageIndex++;
+            
+            if (state.currentStageIndex < 10) {
+                updateGameUI();
+            } else {
+                showResultScreen();
+            }
+        }
+
+        function showResultScreen() {
+            document.getElementById('final-score').textContent = state.score;
+            document.getElementById('final-correct').textContent = state.correctCount;
+            document.getElementById('final-wrong').textContent = state.wrongCount;
+            
+            const msg = document.getElementById('result-message');
+            if(state.score === 100) {
+                msg.innerHTML = `Sempurna, Kesatria <span id="final-name" class="text-white font-bold">${state.playerName}</span>! Kamu menguasai angka!`;
+            } else if (state.score >= 70) {
+                msg.innerHTML = `Hebat, Kesatria <span id="final-name" class="text-white font-bold">${state.playerName}</span>! Sedikit lagi mencapai kesempurnaan.`;
+            } else {
+                msg.innerHTML = `Jangan menyerah, Kesatria <span id="final-name" class="text-white font-bold">${state.playerName}</span>! Terus berlatih!`;
+            }
+
+            showScreen('screen-result');
+        }
+    </script>
+</body>
+</html>
