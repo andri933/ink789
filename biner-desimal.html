@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Konversi Bilangan Desimal & Biner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-item {
+            transition: all 0.3s ease;
+        }
+        .step-item:hover {
+            transform: translateX(5px);
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <header class="bg-blue-600 text-white shadow-md py-4">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold"><i class="fas fa-exchange-alt mr-2"></i> Simulasi Konversi Bilangan</h1>
+            <p class="text-blue-100 mt-2 text-sm md:text-base">Pelajari cara mengonversi antara Desimal dan Biner selangkah demi selangkah</p>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Tab Navigation -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button id="tab-dec-to-bin" class="flex-1 py-3 px-4 text-center border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none border-blue-500 text-blue-600 bg-blue-50">
+                Desimal ke Biner
+            </button>
+            <button id="tab-bin-to-dec" class="flex-1 py-3 px-4 text-center border-b-2 font-medium text-sm transition-colors duration-200 focus:outline-none border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                Biner ke Desimal
+            </button>
+        </div>
+
+        <!-- Section: Decimal to Binary -->
+        <section id="section-dec-to-bin" class="bg-white rounded-xl shadow-lg p-6 md:p-8 fade-in">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Konversi Desimal (Basis 10) ke Biner (Basis 2)</h2>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-sm text-blue-800">
+                <p><strong>Cara kerja:</strong> Bagi bilangan desimal dengan 2 secara terus-menerus. Sisa pembagian (modulus) dari bawah ke atas akan menjadi bilangan biner.</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-grow">
+                    <label for="input-dec" class="block text-sm font-medium text-gray-700 mb-1">Masukkan Bilangan Desimal (Misal: 13)</label>
+                    <input type="number" id="input-dec" min="0" step="1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-lg" placeholder="Contoh: 42">
+                </div>
+                <div class="flex items-end">
+                    <button id="btn-convert-dec" class="w-full md:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Konversi & Simulasikan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Area Hasil Simulasi Desimal ke Biner -->
+            <div id="result-dec-to-bin" class="hidden mt-8 border-t border-gray-100 pt-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Langkah-langkah Konversi:</h3>
+                
+                <div class="overflow-x-auto bg-gray-50 rounded-lg border border-gray-200">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b border-gray-200">
+                                <th class="p-3 font-semibold">Langkah</th>
+                                <th class="p-3 font-semibold">Pembagian</th>
+                                <th class="p-3 font-semibold text-center">Hasil</th>
+                                <th class="p-3 font-semibold text-center text-blue-600">Sisa (Bit)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="steps-dec-to-bin" class="code-font text-sm">
+                            <!-- Langkah-langkah akan dimasukkan di sini oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p class="text-sm text-gray-600 mb-2">Baca sisa dari bawah ke atas (MSB ke LSB):</p>
+                    <div class="text-2xl md:text-3xl font-bold text-green-700 tracking-widest code-font" id="final-bin-result"></div>
+                    <p class="text-xs text-gray-500 mt-2">Biner (Basis 2)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Binary to Decimal -->
+        <section id="section-bin-to-dec" class="bg-white rounded-xl shadow-lg p-6 md:p-8 hidden">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Konversi Biner (Basis 2) ke Desimal (Basis 10)</h2>
+            <div class="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6 text-sm text-purple-800">
+                <p><strong>Cara kerja:</strong> Kalikan setiap digit biner (mulai dari kanan/LSB) dengan 2 pangkat posisinya (dimulai dari pangkat 0). Kemudian jumlahkan semua hasilnya.</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-grow">
+                    <label for="input-bin" class="block text-sm font-medium text-gray-700 mb-1">Masukkan Bilangan Biner (Hanya 0 dan 1)</label>
+                    <input type="text" id="input-bin" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-shadow text-lg code-font tracking-widest" placeholder="Contoh: 101010" pattern="[01]+">
+                    <p id="bin-error" class="text-red-500 text-xs mt-1 hidden">Hanya masukkan angka 0 dan 1.</p>
+                </div>
+                <div class="flex items-end">
+                    <button id="btn-convert-bin" class="w-full md:w-auto px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg shadow transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
+                        Konversi & Simulasikan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Area Hasil Simulasi Biner ke Desimal -->
+            <div id="result-bin-to-dec" class="hidden mt-8 border-t border-gray-100 pt-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-4">Langkah-langkah Konversi:</h3>
+                
+                <div class="bg-gray-50 rounded-lg border border-gray-200 p-4 overflow-x-auto">
+                    <div id="steps-bin-to-dec" class="flex flex-col gap-3 code-font text-sm md:text-base whitespace-nowrap min-w-max">
+                        <!-- Perhitungan akan dimasukkan di sini oleh JS -->
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-300">
+                        <div class="flex justify-between items-center text-gray-700 font-medium">
+                            <span>Total Penjumlahan:</span>
+                            <span id="sum-calculation" class="code-font text-sm md:text-base max-w-xs md:max-w-md overflow-hidden text-ellipsis whitespace-nowrap" title=""></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                    <p class="text-sm text-gray-600 mb-1">Hasil Konversi:</p>
+                    <div class="text-3xl font-bold text-green-700 code-font" id="final-dec-result"></div>
+                    <p class="text-xs text-gray-500 mt-2">Desimal (Basis 10)</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-300 py-6 text-center text-sm mt-auto">
+        <p>&copy; Simulasi Konversi Bilangan Sederhana</p>
+        <p class="mt-1 text-gray-500">Dibuat untuk tujuan edukasi.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements - Tabs
+            const tabDecToBin = document.getElementById('tab-dec-to-bin');
+            const tabBinToDec = document.getElementById('tab-bin-to-dec');
+            const sectionDecToBin = document.getElementById('section-dec-to-bin');
+            const sectionBinToDec = document.getElementById('section-bin-to-dec');
+
+            // DOM Elements - Dec to Bin
+            const inputDec = document.getElementById('input-dec');
+            const btnConvertDec = document.getElementById('btn-convert-dec');
+            const resultDecToBin = document.getElementById('result-dec-to-bin');
+            const stepsDecToBin = document.getElementById('steps-dec-to-bin');
+            const finalBinResult = document.getElementById('final-bin-result');
+
+            // DOM Elements - Bin to Dec
+            const inputBin = document.getElementById('input-bin');
+            const btnConvertBin = document.getElementById('btn-convert-bin');
+            const binError = document.getElementById('bin-error');
+            const resultBinToDec = document.getElementById('result-bin-to-dec');
+            const stepsBinToDec = document.getElementById('steps-bin-to-dec');
+            const sumCalculation = document.getElementById('sum-calculation');
+            const finalDecResult = document.getElementById('final-dec-result');
+
+            // Tab Switching Logic
+            function switchTab(activeTab, inactiveTab, showSection, hideSection) {
+                // Update button styles
+                activeTab.classList.remove('border-transparent', 'text-gray-500');
+                activeTab.classList.add('border-blue-500', 'text-blue-600', 'bg-blue-50');
+                
+                inactiveTab.classList.remove('border-blue-500', 'text-blue-600', 'bg-blue-50');
+                inactiveTab.classList.add('border-transparent', 'text-gray-500');
+
+                if (activeTab === tabBinToDec) {
+                     activeTab.classList.replace('border-blue-500', 'border-purple-500');
+                     activeTab.classList.replace('text-blue-600', 'text-purple-600');
+                     activeTab.classList.replace('bg-blue-50', 'bg-purple-50');
+                } else {
+                     inactiveTab.classList.remove('border-purple-500', 'text-purple-600', 'bg-purple-50');
+                }
+
+                // Show/Hide sections
+                hideSection.classList.add('hidden');
+                hideSection.classList.remove('fade-in');
+                showSection.classList.remove('hidden');
+                // Trigger reflow to restart animation
+                void showSection.offsetWidth; 
+                showSection.classList.add('fade-in');
+            }
+
+            tabDecToBin.addEventListener('click', () => switchTab(tabDecToBin, tabBinToDec, sectionDecToBin, sectionBinToDec));
+            tabBinToDec.addEventListener('click', () => switchTab(tabBinToDec, tabDecToBin, sectionBinToDec, sectionDecToBin));
+
+            // Decimal to Binary Conversion Logic
+            btnConvertDec.addEventListener('click', () => {
+                const decValue = parseInt(inputDec.value, 10);
+                
+                if (isNaN(decValue) || decValue < 0) {
+                    alert("Mohon masukkan bilangan bulat positif yang valid.");
+                    return;
+                }
+
+                stepsDecToBin.innerHTML = '';
+                resultDecToBin.classList.remove('hidden');
+                
+                if (decValue === 0) {
+                    stepsDecToBin.innerHTML = `
+                        <tr class="border-b border-gray-200">
+                            <td class="p-3 text-gray-500">1</td>
+                            <td class="p-3">0 / 2</td>
+                            <td class="p-3 text-center">0</td>
+                            <td class="p-3 text-center font-bold text-blue-600">0</td>
+                        </tr>
+                    `;
+                    finalBinResult.textContent = '0';
+                    return;
+                }
+
+                let currentVal = decValue;
+                let stepCount = 1;
+                let binaryString = "";
+
+                // Generate steps
+                while (currentVal > 0) {
+                    const quotient = Math.floor(currentVal / 2);
+                    const remainder = currentVal % 2;
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-gray-200 step-item';
+                    tr.innerHTML = `
+                        <td class="p-3 text-gray-500">#${stepCount}</td>
+                        <td class="p-3 bg-white"><span class="font-semibold">${currentVal}</span> &divide; 2</td>
+                        <td class="p-3 text-center bg-gray-50">${quotient}</td>
+                        <td class="p-3 text-center font-bold text-blue-600 bg-blue-50 border-l border-blue-100">${remainder}</td>
+                    `;
+                    stepsDecToBin.appendChild(tr);
+
+                    binaryString = remainder.toString() + binaryString;
+                    currentVal = quotient;
+                    stepCount++;
+                }
+
+                finalBinResult.textContent = binaryString;
+            });
+
+            // Enter key support for input
+            inputDec.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') btnConvertDec.click();
+            });
+
+            // Input Validation for Binary
+            inputBin.addEventListener('input', function(e) {
+                const value = e.target.value;
+                if (/[^01]/.test(value)) {
+                    binError.classList.remove('hidden');
+                    // Clean input
+                    e.target.value = value.replace(/[^01]/g, '');
+                } else {
+                    binError.classList.add('hidden');
+                }
+            });
+
+            // Binary to Decimal Conversion Logic
+            btnConvertBin.addEventListener('click', () => {
+                const binValue = inputBin.value;
+                
+                if (binValue === "" || /[^01]/.test(binValue)) {
+                    alert("Mohon masukkan bilangan biner yang valid (hanya 0 dan 1).");
+                    return;
+                }
+
+                stepsBinToDec.innerHTML = '';
+                resultBinToDec.classList.remove('hidden');
+                
+                const length = binValue.length;
+                let decimalTotal = 0;
+                let sumStringArr = [];
+
+                // Format the visual representation
+                const rowTop = document.createElement('div');
+                rowTop.className = 'flex items-center space-x-2 text-gray-600 border-b border-gray-200 pb-2 mb-2';
+                
+                const rowMiddle = document.createElement('div');
+                rowMiddle.className = 'flex items-center space-x-2';
+                
+                const rowBottom = document.createElement('div');
+                rowBottom.className = 'flex items-center space-x-2 mt-2 pt-2 border-t border-gray-200';
+
+                // Label columns
+                rowTop.innerHTML = '<div class="w-24 text-right pr-4 font-semibold text-xs text-gray-500 uppercase">Posisi/Pangkat:</div>';
+                rowMiddle.innerHTML = '<div class="w-24 text-right pr-4 font-semibold text-xs text-gray-500 uppercase">Digit Biner:</div>';
+                rowBottom.innerHTML = '<div class="w-24 text-right pr-4 font-semibold text-xs text-gray-500 uppercase">Hasil (Digit × 2^n):</div>';
+
+                // Iterate from right to left (LSB to MSB), but display left to right (MSB to LSB)
+                for (let i = 0; i < length; i++) {
+                    const digitStr = binValue.charAt(i);
+                    const digit = parseInt(digitStr, 10);
+                    const power = length - 1 - i; // Exponent based on position from right
+                    const value = digit * Math.pow(2, power);
+                    
+                    decimalTotal += value;
+                    sumStringArr.push(value);
+
+                    // Add items to rows
+                    rowTop.innerHTML += `<div class="w-16 text-center text-xs text-gray-500">2<sup>${power}</sup></div>`;
+                    
+                    rowMiddle.innerHTML += `<div class="w-16 text-center">
+                        <div class="inline-block w-8 h-8 leading-8 bg-purple-100 text-purple-700 font-bold rounded shadow-sm border border-purple-200">
+                            ${digit}
+                        </div>
+                    </div>`;
+
+                    rowBottom.innerHTML += `<div class="w-16 text-center text-sm font-medium ${digit === 1 ? 'text-gray-800' : 'text-gray-400'}">
+                        ${value}
+                    </div>`;
+                }
+
+                stepsBinToDec.appendChild(rowTop);
+                stepsBinToDec.appendChild(rowMiddle);
+                stepsBinToDec.appendChild(rowBottom);
+
+                // Update summary
+                const sumText = sumStringArr.join(' + ');
+                sumCalculation.textContent = sumText + ` = ${decimalTotal}`;
+                sumCalculation.title = sumText; // Tooltip for full text if truncated
+                
+                finalDecResult.textContent = decimalTotal;
+            });
+
+            // Enter key support for binary input
+            inputBin.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') btnConvertBin.click();
+            });
+        });
+    </script>
+</body>
+</html>
